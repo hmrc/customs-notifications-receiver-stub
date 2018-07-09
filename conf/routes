@@ -1,0 +1,8 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET        /api                      uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.helloWorld
+POST       /api                      uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.post()
+
+
