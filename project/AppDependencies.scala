@@ -2,7 +2,6 @@ import sbt._
 
 object AppDependencies {
 
-  private val bootstrapPlay25Version = "1.5.0"
   private val hmrcTestVersion = "3.0.0"
   private val scalaTestVersion = "3.0.5"
   private val scalatestplusVersion = "2.0.1"
@@ -13,8 +12,6 @@ object AppDependencies {
   private val testScope = "test,it"
 
   val xmlResolver = "xml-resolver" % "xml-resolver" % "1.2"
-
-  val bootstrapPlay25 = "uk.gov.hmrc" %% "bootstrap-play-25" % bootstrapPlay25Version
 
   val hmrcTest = "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % testScope
 

@@ -34,7 +34,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerT
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/plain")
-      contentAsString(home) must include(s"Hello World!!")
+      contentAsString(home) must include("Hello World!!")
     }
 
     "handle valid Post and respond appropriately" in {
@@ -45,7 +45,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerT
 
       status(home) mustBe OK
       contentType(home) mustBe Some("text/plain")
-      contentAsString(home) must include(s"ok")
+      contentAsString(home) must include("ok")
     }
   }
 
