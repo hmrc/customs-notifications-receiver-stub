@@ -22,6 +22,7 @@ import play.api.test.Helpers._
 import play.api.test._
 
 import scala.concurrent.Future
+import scala.xml.NodeSeq
 
 class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerTest {
 
@@ -34,6 +35,17 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerT
       status(home) mustBe OK
       contentType(home) mustBe Some("text/plain")
       contentAsString(home) must include(s"Hello World!!")
+    }
+
+    "handle valid Post and respond appropriately" in {
+      val xmlBody : NodeSeq = <stuff>
+                                <moreXml>Stuff</moreXml>
+                              </stuff>
+      val home: Future[Result] = route(app, FakeRequest(POST, "/api").withXmlBody(xmlBody)).get
+
+      status(home) mustBe OK
+      contentType(home) mustBe Some("text/plain")
+      contentAsString(home) must include(s"ok")
     }
   }
 

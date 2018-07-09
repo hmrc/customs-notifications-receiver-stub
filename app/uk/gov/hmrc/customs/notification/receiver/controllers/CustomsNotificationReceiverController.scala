@@ -16,17 +16,32 @@
 
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
+import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.mvc
 import play.api.mvc.Action
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+
+import scala.concurrent.Future
+import scala.xml.NodeSeq
 
 
 @Singleton
-class CustomsNotificationReceiverController extends BaseController {
+class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
 
   def helloWorld: Action[mvc.AnyContent] = Action {
+    logger.info("Received GET Request")
     Ok("Hello World!!")
+  }
+
+  def post(): Action[NodeSeq] = Action.async(parse.xml) { req =>
+    req.body.map {
+      xml =>
+        logger.info(xml.toString())
+    }
+    req.headers.toSimpleMap.foreach(header => logger.info("Header Received: " + header._1 + " - " + header._2))
+    Future.successful(Ok("ok"))
   }
 
 }
