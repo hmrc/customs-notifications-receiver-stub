@@ -20,6 +20,9 @@ import org.scalatestplus.play._
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
+import play.mvc.Http.MimeTypes
+import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
+import util.TestData._
 
 import scala.concurrent.Future
 import scala.xml.NodeSeq
@@ -29,26 +32,52 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerT
 
   "CustomsNotificationReceiverController" should {
 
-    "handle valid get and respond appropriately" in {
-      val home: Future[Result] = route(app, FakeRequest(GET, "/api")).get
-
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/plain")
-      contentAsString(home) must include("Hello World!!")
-    }
-
     "handle valid Post and respond appropriately" in {
       val xmlBody : NodeSeq = <stuff>
                                 <moreXml>Stuff</moreXml>
                               </stuff>
-      val home: Future[Result] = route(app, FakeRequest(POST, "/api").withXmlBody(xmlBody)).get
+      val home: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+        .withXmlBody(xmlBody)
+        .withHeaders(
+          AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+          CONTENT_TYPE -> MimeTypes.XML,
+          USER_AGENT -> "Customs Declaration Service",
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+        )).get
 
       status(home) mustBe OK
-      contentType(home) mustBe Some("text/plain")
+      contentType(home) mustBe Some("application/json")
+      contentAsString(home) mustBe "{\"csid\":\"ffff01f9-ec3b-4ede-b263-61b626dde232\",\"conversationId\":\"eaca01f9-ec3b-4ede-b263-61b626dde232\",\"authHeaderToken\":\"Basic ffff01f9-ec3b-4ede-b263-61b626dde232\",\"outboundCallHeaders\":[],\"xmlPayload\":\"List(<stuff>\\n                                <moreXml>Stuff</moreXml>\\n                              </stuff>)\"}"
+    }
+
+    "return all received requests for a client subscription Id" in {
+      val xmlBody : NodeSeq = <stuff>
+        <moreXml>Stuff</moreXml>
+      </stuff>
+
+      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(xmlBody)
+        .withHeaders(
+          AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+          CONTENT_TYPE -> MimeTypes.XML,
+          USER_AGENT -> "Customs Declaration Service",
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+          )).get)
+
+      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(xmlBody)
+        .withHeaders(
+        AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+        CONTENT_TYPE -> MimeTypes.XML,
+        USER_AGENT -> "Customs Declaration Service",
+        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+      )).get)
+
+      val home: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + validClientSubscriptionId)).get
+
+      status(home) mustBe OK
+      contentType(home) mustBe Some("application/json")
       contentAsString(home) must include("ok")
     }
+
   }
-
-
 
 }
