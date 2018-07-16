@@ -17,16 +17,17 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
+import javax.inject.Singleton
 
 import com.google.inject.Inject
-import javax.inject.Singleton
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Headers}
+import play.api.mvc.{Action, AnyContent, Headers, Result}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
+import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, Header, NotificationRequest}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
+import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.xml.NodeSeq
 
@@ -34,42 +35,61 @@ import scala.xml.NodeSeq
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
 
-  def extractCsid(authHeadersid: String): UUID = {
-    UUID.fromString(authHeadersid.substring(6,42))
-  }
+  private val notificationsByCsidMap = scala.collection.mutable.Map[UUID, Seq[NotificationRequest]]()
 
-  private val requestMap: Map[String, NotificationRequest] = Map.empty
-
-  def post(): Action[NodeSeq] = Action.async(parse.xml) { req =>
-    val body = req.body.map {
+  def post(): Action[NodeSeq] = Action.async(parse.xml) { request =>
+    val body: Seq[String] = request.body.map {
       xml =>
-        logger.info(xml.toString())
-        xml.toString()
+        val s = xml.toString
+        logger.info(s)
+        s
     }
 
-    val results: Either[Status, NotificationRequest] = for {
-     authHeader <- extractHeader(AUTHORIZATION, req.headers).right
-     conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, req.headers).right
+    val either: Either[Result, NotificationRequest] = for {
+     authHeader <- extractHeader(AUTHORIZATION, request.headers).right
+     conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, request.headers).right
 
-    } yield NotificationRequest(extractCsid(authHeader), conversationId, authHeader, Seq.empty, body.toString())
+    } yield {
+      val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+      val payload = body.head.toString
+      NotificationRequest(extractCsid(authHeader), conversationId, authHeader, seqOfHeader, payload)
+    }
 
-    results match {
-      case Right(notificationRequest) => { //TODO add request to map
+    either match {
+      case Right(notificationRequest) =>
+        notificationsByCsidMap.get(notificationRequest.csid).fold[Unit](notificationsByCsidMap.put(notificationRequest.csid, Seq(notificationRequest))) {notifications: Seq[NotificationRequest] =>
+          val newList = notifications :+ notificationRequest
+          notificationsByCsidMap.put(notificationRequest.csid, newList)
+        }
         Future.successful(Ok(Json.toJson(notificationRequest)))
-      }
-      case Left(result) => Future.successful(result)
+      case Left(result) =>
+        Future.successful(result)
     }
 
   }
 
-  def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action { req =>
-    val clientSubscriptionId = req.headers.get(AUTHORIZATION).fold()(headerVal => extractCsid(headerVal))
-    Ok("ok " + clientSubscriptionId)
+  private def extractCsid(authHeadersId: String): UUID = {
+    val six = 6
+    val fortyTwo = 42
+    UUID.fromString(authHeadersId.substring(six, fortyTwo))
   }
 
-  def extractHeader(key: String, headers: Headers): Either[Status, String] = {
+  def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
+    val either: Either[Result, Seq[NotificationRequest]] = for {
+      authHeader <- extractHeader(AUTHORIZATION, request.headers).right
+    } yield notificationsByCsidMap.get(extractCsid(authHeader)).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
+
+    either match {
+      case Right(notifications) =>
+        Future.successful(Ok(Json.toJson(notifications)))
+      case Left(result) =>
+        Future.successful(result)
+    }
+  }
+
+  def extractHeader(key: String, headers: Headers): Either[Result, String] = {
     val maybeString: Option[String] = headers.get(key)
-    maybeString.fold[Either[Status, String]](Left(BadRequest))(headerVal => Right(headerVal))
+    maybeString.fold[Either[Result, String]](Left(BadRequest))(headerVal => Right(headerVal))
   }
 
 }

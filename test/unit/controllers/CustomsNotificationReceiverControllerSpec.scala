@@ -17,6 +17,8 @@
 package unit.controllers
 
 import org.scalatestplus.play._
+import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
@@ -25,59 +27,77 @@ import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
 import util.TestData._
 
 import scala.concurrent.Future
-import scala.xml.NodeSeq
 
-class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerTest {
+class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAppPerTest {
 
 
   "CustomsNotificationReceiverController" should {
 
     "handle valid Post and respond appropriately" in {
-      val xmlBody : NodeSeq = <stuff>
-                                <moreXml>Stuff</moreXml>
-                              </stuff>
-      val home: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
-        .withXmlBody(xmlBody)
+      val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+        .withXmlBody(XmlPayload)
         .withHeaders(
-          AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+          AUTHORIZATION -> ("Basic " + CsidOne.toString),
           CONTENT_TYPE -> MimeTypes.XML,
           USER_AGENT -> "Customs Declaration Service",
-          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
         )).get
 
-      status(home) mustBe OK
-      contentType(home) mustBe Some("application/json")
-      contentAsString(home) mustBe "{\"csid\":\"ffff01f9-ec3b-4ede-b263-61b626dde232\",\"conversationId\":\"eaca01f9-ec3b-4ede-b263-61b626dde232\",\"authHeaderToken\":\"Basic ffff01f9-ec3b-4ede-b263-61b626dde232\",\"outboundCallHeaders\":[],\"xmlPayload\":\"List(<stuff>\\n                                <moreXml>Stuff</moreXml>\\n                              </stuff>)\"}"
+      status(eventualResult) mustBe OK
+      contentType(eventualResult) mustBe Some("application/json")
+      contentAsJson(eventualResult) mustBe notificationRequestJson(CsidOne, ConversationIdOne)
+    }
+
+    "return empty received requests for a client subscription Id that has no notifications" in {
+
+      val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+
+      status(eventualResult) mustBe OK
+      contentType(eventualResult) mustBe Some("application/json")
+      contentAsJson(eventualResult) mustBe Json.parse("[]")
     }
 
     "return all received requests for a client subscription Id" in {
-      val xmlBody : NodeSeq = <stuff>
-        <moreXml>Stuff</moreXml>
-      </stuff>
-
-      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(xmlBody)
+      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(XmlPayload)
         .withHeaders(
-          AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+          AUTHORIZATION -> ("Basic " + CsidOne),
           CONTENT_TYPE -> MimeTypes.XML,
           USER_AGENT -> "Customs Declaration Service",
-          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get)
-
-      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(xmlBody)
+      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(XmlPayload)
         .withHeaders(
-        AUTHORIZATION -> ("Basic " + validClientSubscriptionId),
+        AUTHORIZATION -> ("Basic " + CsidOne),
         CONTENT_TYPE -> MimeTypes.XML,
         USER_AGENT -> "Customs Declaration Service",
-        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> validConversationId
+        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
       )).get)
+      await(route(app, FakeRequest(POST, "/pushnotifications").withXmlBody(XmlPayload)
+        .withHeaders(
+          AUTHORIZATION -> ("Basic " + CsidTwo),
+          CONTENT_TYPE -> MimeTypes.XML,
+          USER_AGENT -> "Customs Declaration Service",
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdTwo.toString
+        )).get)
 
-      val home: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + validClientSubscriptionId)).get
 
-      status(home) mustBe OK
-      contentType(home) mustBe Some("application/json")
-      contentAsString(home) must include("ok")
+      val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+
+      status(eventualResult) mustBe OK
+      contentType(eventualResult) mustBe Some("application/json")
+      contentAsJson(eventualResult) mustBe notificationsResultJson(
+        notificationRequest(CsidOne, ConversationIdOne),
+        notificationRequest(CsidOne, ConversationIdOne)
+      )
+
+      val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidTwo).withHeaders(AUTHORIZATION -> ("Basic " + CsidTwo))).get
+
+      status(eventualResult2) mustBe OK
+      contentType(eventualResult2) mustBe Some("application/json")
+      contentAsJson(eventualResult2) mustBe notificationsResultJson(
+        notificationRequest(CsidTwo, ConversationIdTwo)
+      )
     }
-
   }
 
 }
