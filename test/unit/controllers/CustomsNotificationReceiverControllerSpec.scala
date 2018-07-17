@@ -146,18 +146,18 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
       "return 415 for incorrect Accept header" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
-          .withTextBody("INVALID XML")
+          .withTextBody("<SOMEXML></SOMEXML>")
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne.toString),
-            CONTENT_TYPE -> MimeTypes.TEXT,
+            CONTENT_TYPE -> MimeTypes.XML,
             ACCEPT -> MimeTypes.TEXT,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get
 
-        status(eventualResult) mustBe UNSUPPORTED_MEDIA_TYPE
+        status(eventualResult) mustBe NOT_ACCEPTABLE
         val x = contentAsString(eventualResult)
-        string2xml(x) mustBe unsupportedMediaTypeXml
+       string2xml(x) mustBe acceptHeaderInvalidXml
       }
     }
   }

@@ -23,8 +23,10 @@ import javax.inject.Singleton
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http.MimeTypes
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{apply => _, _}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.controllers.ValidationAction.extractCsid
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
@@ -32,25 +34,23 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
+import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
 
-  def post(): Action[AnyContent] = Action andThen headerValidation async{ implicit request =>
+  def post(): Action[AnyContent] = Action andThen new ValidationAction async{ implicit request =>
 
     request.body.asXml match {
       case Some(xmlPayload) =>
         val either: Either[Result, NotificationRequest] = for {
-          _ <-  extractAndValidateContentTypeHeader(request.headers).right
           authHeader <- extractHeader(AUTHORIZATION, request.headers).right
-          conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, request.headers).right
-
         } yield {
           val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
           val payload = xmlPayload.toString
-          NotificationRequest(extractCsid(authHeader), conversationId, authHeader, seqOfHeader, payload)
+          NotificationRequest(request.csid, request.conversationId.toString, authHeader, seqOfHeader, payload)
         }
 
         either match {
@@ -64,12 +64,6 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
         Future.successful(errorBadRequest("Invalid Xml").XmlResult)
     }
 
-  }
-
-  private def extractCsid(authHeadersId: String): UUID = {
-    val six = 6
-    val fortyTwo = 42
-    UUID.fromString(authHeadersId.substring(six, fortyTwo))
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
@@ -89,7 +83,9 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
 
   def extractAndValidateContentTypeHeader(headers: Headers): Either[Result, String] = {
     val maybeString: Option[String] = headers.get(CONTENT_TYPE)
-    maybeString.fold[Either[Result, String]](Left(ErrorGenericBadRequest.XmlResult))(headerVal =>
+    maybeString.fold[Either[Result, String]]({
+      Left(ErrorGenericBadRequest.XmlResult)
+    })(headerVal =>
       if (headerVal.contains(MimeTypes.XML)) {
         Right(headerVal)
       } else {
@@ -98,26 +94,54 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
     )
   }
 
-  val headerValidation: ActionFilter[Request] = new ActionFilter[Request] {
-    override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-      implicit val headers: Headers = request.headers
-      if (!hasContentType) {
-        Future.successful(Some(ErrorContentTypeHeaderInvalid.XmlResult))
-      } else if (!hasAccept) {
-        Future.successful(Some(ErrorAcceptHeaderInvalid.XmlResult))
-      } else  {
-        Future.successful(None)
-      }
-    }
+}
 
-    def hasContentType(implicit h: Headers): Boolean = {
-      val result = h.get(CONTENT_TYPE).fold(false)(_.contains(MimeTypes.XML))
-      result
-    }
 
-    def hasAccept(implicit h: Headers): Boolean = {
-      val result = h.get(ACCEPT).fold(false)(_.contains(MimeTypes.XML))
-      result
+class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
+  /*
+  auth
+  conv
+  acc
+  cont
+   */
+
+  private val uuidRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$".r
+  private val xmlRegex = s"^${MimeTypes.XML}".r
+  private val csidRegex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}".r
+
+  override protected def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] = {
+    Future.successful{
+      for {
+       //_ <- extractAndValidate(r, "Accept", xmlRegex, ErrorAcceptHeaderInvalid).right
+        //_ <- extractAndValidate(r, "Content-Type", ".*".r, ErrorContentTypeHeaderInvalid).right
+        conversationId <- extractAndValidate(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
+        csid <- extractAndValidate(r, "AUTHORIZATION", csidRegex, ErrorContentTypeHeaderInvalid).right
+      } yield ExtractedHeadersRequest(UUID.fromString(conversationId), extractCsid(csid), r)
     }
   }
+
+  private def extractAndValidate[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
+    val mayBeHeaderValue = request.headers.get(headerName)
+    mayBeHeaderValue.fold[Either[Result, String]]({
+      Left(errorResponse.XmlResult)
+    })({
+      headerValue : String =>
+        val matcher = regex.pattern.matcher(headerValue)
+        if (!matcher.matches()) {
+          Left(errorResponse.XmlResult)
+        } else{
+          Right(headerValue)
+        }
+    })
+  }
 }
+
+object ValidationAction {
+  def extractCsid(authHeadersId: String): UUID = {
+    val six = 6
+    val fortyTwo = 42
+    UUID.fromString(authHeadersId.substring(six, fortyTwo))
+  }
+}
+
+case class ExtractedHeadersRequest[A](csid: UUID, conversationId: UUID, request: Request[A]) extends WrappedRequest(request)

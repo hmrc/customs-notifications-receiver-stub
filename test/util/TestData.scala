@@ -75,6 +75,7 @@ object TestData {
             |}""".stripMargin)
 
   val badRequestXmlInvalidXml = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+  val acceptHeaderInvalidXml = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
   val unsupportedMediaTypeXml = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
 
   def notificationsResultJson(notifications: String *): JsValue = Json.parse {
