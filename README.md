@@ -18,4 +18,5 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 - readme
 - log levels do not look correct
 - service manager profile
+- increase coverage back to 100%
 

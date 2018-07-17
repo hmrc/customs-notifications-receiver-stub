@@ -39,6 +39,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne.toString),
             CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get
@@ -62,6 +63,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne),
             CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get)
@@ -69,6 +71,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne),
             CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get)
@@ -76,6 +79,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidTwo),
             CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdTwo.toString
           )).get)
@@ -106,6 +110,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           .withXmlBody(XmlPayload)
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get
@@ -123,21 +128,37 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         contentAsJson(eventualResult) mustBe badRequestJsonInvalidCsid
       }
 
-      "return 400 for non xml payload" in {
+      "return 415 for incorrect ContentType header" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
           .withTextBody("INVALID XML")
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne.toString),
             CONTENT_TYPE -> MimeTypes.TEXT,
+            ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get
 
-        status(eventualResult) mustBe BAD_REQUEST
+        status(eventualResult) mustBe UNSUPPORTED_MEDIA_TYPE
         val x = contentAsString(eventualResult)
-        string2xml(x) mustBe badRequestXmlInvalidXml
+        string2xml(x) mustBe unsupportedMediaTypeXml
       }
 
+      "return 415 for incorrect Accept header" in {
+        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+          .withTextBody("INVALID XML")
+          .withHeaders(
+            AUTHORIZATION -> ("Basic " + CsidOne.toString),
+            CONTENT_TYPE -> MimeTypes.TEXT,
+            ACCEPT -> MimeTypes.TEXT,
+            USER_AGENT -> "Customs Declaration Service",
+            CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+          )).get
+
+        status(eventualResult) mustBe UNSUPPORTED_MEDIA_TYPE
+        val x = contentAsString(eventualResult)
+        string2xml(x) mustBe unsupportedMediaTypeXml
+      }
     }
   }
 }

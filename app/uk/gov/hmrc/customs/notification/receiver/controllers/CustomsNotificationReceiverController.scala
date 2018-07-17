@@ -21,7 +21,8 @@ import java.util.UUID
 import com.google.inject.Inject
 import javax.inject.Singleton
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Headers, Result}
+import play.api.mvc._
+import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{apply => _, _}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
@@ -37,11 +38,12 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
 
-  def post(): Action[AnyContent] = Action.async { implicit request =>
+  def post(): Action[AnyContent] = Action andThen headerValidation async{ implicit request =>
 
     request.body.asXml match {
       case Some(xmlPayload) =>
         val either: Either[Result, NotificationRequest] = for {
+          _ <-  extractAndValidateContentTypeHeader(request.headers).right
           authHeader <- extractHeader(AUTHORIZATION, request.headers).right
           conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, request.headers).right
 
@@ -85,4 +87,37 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
     maybeString.fold[Either[Result, String]](Left(ErrorGenericBadRequest.XmlResult))(headerVal => Right(headerVal))
   }
 
+  def extractAndValidateContentTypeHeader(headers: Headers): Either[Result, String] = {
+    val maybeString: Option[String] = headers.get(CONTENT_TYPE)
+    maybeString.fold[Either[Result, String]](Left(ErrorGenericBadRequest.XmlResult))(headerVal =>
+      if (headerVal.contains(MimeTypes.XML)) {
+        Right(headerVal)
+      } else {
+        Left(ErrorGenericBadRequest.XmlResult)
+      }
+    )
+  }
+
+  val headerValidation: ActionFilter[Request] = new ActionFilter[Request] {
+    override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
+      implicit val headers: Headers = request.headers
+      if (!hasContentType) {
+        Future.successful(Some(ErrorContentTypeHeaderInvalid.XmlResult))
+      } else if (!hasAccept) {
+        Future.successful(Some(ErrorAcceptHeaderInvalid.XmlResult))
+      } else  {
+        Future.successful(None)
+      }
+    }
+
+    def hasContentType(implicit h: Headers): Boolean = {
+      val result = h.get(CONTENT_TYPE).fold(false)(_.contains(MimeTypes.XML))
+      result
+    }
+
+    def hasAccept(implicit h: Headers): Boolean = {
+      val result = h.get(ACCEPT).fold(false)(_.contains(MimeTypes.XML))
+      result
+    }
+  }
 }
