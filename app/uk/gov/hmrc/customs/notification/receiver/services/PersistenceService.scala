@@ -30,13 +30,14 @@ class PersistenceService {
 
   def persist(notificationRequest: NotificationRequest): Unit = {
     notificationsByCsidMap.get(notificationRequest.csid).fold[Unit](notificationsByCsidMap.put(notificationRequest.csid, Seq(notificationRequest))) { notifications: Seq[NotificationRequest] =>
-        val newList = notifications :+ notificationRequest
-        notificationsByCsidMap.put(notificationRequest.csid, newList)
-      }
+      val newList = notifications :+ notificationRequest
+      notificationsByCsidMap.put(notificationRequest.csid, newList)
+    }
   }
 
   def notificationsById(csid: UUID): Seq[NotificationRequest] = {
     notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
   }
 
+  def clearAll(): Unit = notificationsByCsidMap.clear
 }

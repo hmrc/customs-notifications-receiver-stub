@@ -3,5 +3,6 @@
 
 POST       /pushnotifications        uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.post()
 GET        /pushnotifications/:csid  uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.retrieveNotificationByCsId(csid)
+DELETE     /pushnotifications        uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.clearNotifications()
 
 GET        /admin/metrics           @com.kenshoo.play.metrics.MetricsController.metrics

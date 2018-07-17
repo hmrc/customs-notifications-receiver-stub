@@ -52,7 +52,6 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
       case None =>
         Future.successful(errorBadRequest("Invalid Xml").XmlResult)
     }
-
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
@@ -65,6 +64,10 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
     }
   }
 
+  def clearNotifications(): Action[AnyContent] = Action.async { _ =>
+    persistenceService.clearAll()
+    Future.successful(NoContent)
+  }
 }
 
 
