@@ -29,15 +29,26 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 import scala.xml.NodeSeq
 
 
+/*
+- header validation
+  - CONTENT_TYPE, ACCEPT
+- non XML payload tests
+- some test descriptions are too vague
+- clear notifications endpoint
+- readme
+- service manager profile
+*/
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
 
   private val notificationsByCsidMap = scala.collection.mutable.Map[UUID, Seq[NotificationRequest]]()
 
-  def post(): Action[NodeSeq] = Action.async(parse.xml) { request =>
+  def post(): Action[NodeSeq] = Action.async(parse.xml) { implicit request =>
+    // TODO: Xml action type/parsing/error does not look right
     val body: Seq[String] = request.body.map {
       xml =>
         val s = xml.toString
@@ -75,15 +86,12 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extend
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
-    val either: Either[Result, Seq[NotificationRequest]] = for {
-      authHeader <- extractHeader(AUTHORIZATION, request.headers).right
-    } yield notificationsByCsidMap.get(extractCsid(authHeader)).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
-
-    either match {
-      case Right(notifications) =>
+    Try(UUID.fromString(csid)) match {
+      case Success(csidUuid) =>
+        val notifications: Seq[NotificationRequest] = notificationsByCsidMap.get(csidUuid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
         Future.successful(Ok(Json.toJson(notifications)))
-      case Left(result) =>
-        Future.successful(result)
+      case Failure(e) =>
+        Future.successful(BadRequest(e.getMessage))
     }
   }
 
