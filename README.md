@@ -12,8 +12,9 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 # TODO
 
 - header validation
-  - CONTENT_TYPE, ACCEPT
+  - CONTENT_TYPE, ACCEPT  
 - non XML payload tests
+- extract MAP/persistence logic to a service
 - some test descriptions are too vague
 - clear notifications endpoint
 - readme
