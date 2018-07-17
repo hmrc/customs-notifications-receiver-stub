@@ -33,15 +33,6 @@ import scala.util.{Failure, Success, Try}
 import scala.xml.NodeSeq
 
 
-/*
-- header validation
-  - CONTENT_TYPE, ACCEPT
-- non XML payload tests
-- some test descriptions are too vague
-- clear notifications endpoint
-- readme
-- service manager profile
-*/
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
 

@@ -8,3 +8,15 @@ This is a placeholder README.md for a new repository
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+
+# TODO
+
+- header validation
+  - CONTENT_TYPE, ACCEPT
+- non XML payload tests
+- some test descriptions are too vague
+- clear notifications endpoint
+- readme
+- log levels do not look correct
+- service manager profile
+
