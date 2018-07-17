@@ -120,20 +120,22 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           )).get
 
         status(eventualResult) mustBe BAD_REQUEST
-        contentAsString(eventualResult) mustBe "Invalid UUID string: 1"
+        contentAsJson(eventualResult) mustBe badRequestJsonInvalidCsid
       }
 
-      "handle non XML Post and respond appropriately" in {
+      "return 400 for non xml payload" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
           .withTextBody("INVALID XML")
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne.toString),
-            CONTENT_TYPE -> MimeTypes.XML,
+            CONTENT_TYPE -> MimeTypes.TEXT,
             USER_AGENT -> "Customs Declaration Service",
             CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
           )).get
 
         status(eventualResult) mustBe BAD_REQUEST
+        val x = contentAsString(eventualResult)
+        string2xml(x) mustBe badRequestXmlInvalidXml
       }
 
     }

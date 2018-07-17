@@ -17,55 +17,49 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
-import javax.inject.Singleton
 
 import com.google.inject.Inject
+import javax.inject.Singleton
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Headers, Result}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{apply => _, _}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import scala.xml.NodeSeq
 
 
 @Singleton
-class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
+class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
 
-  private val notificationsByCsidMap = scala.collection.mutable.Map[UUID, Seq[NotificationRequest]]()
+  def post(): Action[AnyContent] = Action.async { implicit request =>
 
-  def post(): Action[NodeSeq] = Action.async(parse.xml) { implicit request =>
-    // TODO: Xml action type/parsing/error does not look right
-    val body: Seq[String] = request.body.map {
-      xml =>
-        val s = xml.toString
-        logger.info(s)
-        s
-    }
+    request.body.asXml match {
+      case Some(xmlPayload) =>
+        val either: Either[Result, NotificationRequest] = for {
+          authHeader <- extractHeader(AUTHORIZATION, request.headers).right
+          conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, request.headers).right
 
-    val either: Either[Result, NotificationRequest] = for {
-     authHeader <- extractHeader(AUTHORIZATION, request.headers).right
-     conversationId <- extractHeader(CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, request.headers).right
-
-    } yield {
-      val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
-      val payload = body.head.toString
-      NotificationRequest(extractCsid(authHeader), conversationId, authHeader, seqOfHeader, payload)
-    }
-
-    either match {
-      case Right(notificationRequest) =>
-        notificationsByCsidMap.get(notificationRequest.csid).fold[Unit](notificationsByCsidMap.put(notificationRequest.csid, Seq(notificationRequest))) {notifications: Seq[NotificationRequest] =>
-          val newList = notifications :+ notificationRequest
-          notificationsByCsidMap.put(notificationRequest.csid, newList)
+        } yield {
+          val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+          val payload = xmlPayload.toString
+          NotificationRequest(extractCsid(authHeader), conversationId, authHeader, seqOfHeader, payload)
         }
-        Future.successful(Ok(Json.toJson(notificationRequest)))
-      case Left(result) =>
-        Future.successful(result)
+
+        either match {
+          case Right(notificationRequest) =>
+            persistenceService.persist(notificationRequest)
+            Future.successful(Ok(Json.toJson(notificationRequest)))
+          case Left(result) =>
+            Future.successful(result)
+        }
+      case None =>
+        Future.successful(errorBadRequest("Invalid Xml").XmlResult)
     }
 
   }
@@ -76,19 +70,19 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extend
     UUID.fromString(authHeadersId.substring(six, fortyTwo))
   }
 
-  def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
+  def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
-        val notifications: Seq[NotificationRequest] = notificationsByCsidMap.get(csidUuid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
+        val notifications: Seq[NotificationRequest] = persistenceService.notificationsById(csidUuid)
         Future.successful(Ok(Json.toJson(notifications)))
       case Failure(e) =>
-        Future.successful(BadRequest(e.getMessage))
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
 
   def extractHeader(key: String, headers: Headers): Either[Result, String] = {
     val maybeString: Option[String] = headers.get(key)
-    maybeString.fold[Either[Result, String]](Left(BadRequest))(headerVal => Right(headerVal))
+    maybeString.fold[Either[Result, String]](Left(ErrorGenericBadRequest.XmlResult))(headerVal => Right(headerVal))
   }
 
 }

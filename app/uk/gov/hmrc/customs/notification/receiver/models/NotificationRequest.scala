@@ -18,12 +18,12 @@ package uk.gov.hmrc.customs.notification.receiver.models
 
 import java.util.UUID
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json}
 
 case class Header(name: String, value: String)
 
 object Header{
-  implicit val formats = Json.format[Header]
+  implicit val formats: Format[Header] = Json.format[Header]
 }
 
 case class NotificationRequest(csid: UUID,
@@ -33,6 +33,6 @@ case class NotificationRequest(csid: UUID,
                                 xmlPayload: String)
 
 object NotificationRequest {
-  private implicit val headerFormats = Json.format[Header]
-  implicit val formats: OFormat[NotificationRequest] = Json.format[NotificationRequest]
+  private implicit val headerFormats: Format[Header] = Json.format[Header]
+  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
 }

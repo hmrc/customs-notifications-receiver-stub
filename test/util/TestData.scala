@@ -65,11 +65,19 @@ object TestData {
       |  "xmlPayload": "${xmlPayload.toString}"
       |}""".stripMargin
 
+  val badRequestJsonInvalidCsid = Json.parse("""{
+            |  "code": "BAD_REQUEST",
+            |  "message": "Invalid UUID string: 1"
+            |}""".stripMargin)
+
+  val badRequestXmlInvalidXml = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+
+
   def notificationsResultJson(notifications: String *): JsValue = Json.parse {
     s"""[${notifications.mkString(",")}]""".stripMargin
   }
 
-  protected def string2xml(s: String): Node = {
+  def string2xml(s: String): Node = {
     val xml = try {
       XML.loadString(s)
     } catch {
@@ -78,7 +86,3 @@ object TestData {
     Utility.trim(xml)
   }
 }
-
-
-
-
