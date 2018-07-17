@@ -118,6 +118,20 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         status(eventualResult) mustBe BAD_REQUEST
       }
 
+      "return 400 for POST of notification when payload is invalid" in {
+        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+          .withTextBody("SOm NOn XMl")
+          .withHeaders(
+            AUTHORIZATION -> ("Basic " + CsidOne),
+            CONTENT_TYPE -> MimeTypes.XML,
+            ACCEPT -> MimeTypes.XML,
+            USER_AGENT -> "Customs Declaration Service",
+            CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+          )).get
+
+        status(eventualResult) mustBe BAD_REQUEST
+      }
+
       "return 400 for GET of notifications when csid is invalid" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/1")
           .withHeaders(
@@ -130,7 +144,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
       "return 415 for incorrect ContentType header" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
-          .withTextBody("INVALID XML")
+          .withXmlBody(XmlPayload)
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne.toString),
             CONTENT_TYPE -> MimeTypes.TEXT,

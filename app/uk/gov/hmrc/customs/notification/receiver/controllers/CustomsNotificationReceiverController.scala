@@ -20,13 +20,13 @@ import java.util.UUID
 
 import com.google.inject.Inject
 import javax.inject.Singleton
+import play.api.http.HeaderNames
 import play.api.libs.json.Json
 import play.api.mvc._
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{apply => _, _}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.controllers.ValidationAction.extractCsid
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
@@ -42,24 +42,13 @@ import scala.util.{Failure, Success, Try}
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
 
   def post(): Action[AnyContent] = Action andThen new ValidationAction async{ implicit request =>
-
     request.body.asXml match {
-      case Some(xmlPayload) =>
-        val either: Either[Result, NotificationRequest] = for {
-          authHeader <- extractHeader(AUTHORIZATION, request.headers).right
-        } yield {
-          val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
-          val payload = xmlPayload.toString
-          NotificationRequest(request.csid, request.conversationId.toString, authHeader, seqOfHeader, payload)
-        }
-
-        either match {
-          case Right(notificationRequest) =>
-            persistenceService.persist(notificationRequest)
-            Future.successful(Ok(Json.toJson(notificationRequest)))
-          case Left(result) =>
-            Future.successful(result)
-        }
+      case Some(xmlPayload) => {
+        val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+        val payload = xmlPayload.toString
+        val notificationRequest = NotificationRequest(request.csid, request.conversationId.toString, request.authHeader, seqOfHeader, payload)
+        persistenceService.persist(notificationRequest)
+        Future.successful(Ok(Json.toJson(notificationRequest)))}
       case None =>
         Future.successful(errorBadRequest("Invalid Xml").XmlResult)
     }
@@ -76,34 +65,10 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
     }
   }
 
-  def extractHeader(key: String, headers: Headers): Either[Result, String] = {
-    val maybeString: Option[String] = headers.get(key)
-    maybeString.fold[Either[Result, String]](Left(ErrorGenericBadRequest.XmlResult))(headerVal => Right(headerVal))
-  }
-
-  def extractAndValidateContentTypeHeader(headers: Headers): Either[Result, String] = {
-    val maybeString: Option[String] = headers.get(CONTENT_TYPE)
-    maybeString.fold[Either[Result, String]]({
-      Left(ErrorGenericBadRequest.XmlResult)
-    })(headerVal =>
-      if (headerVal.contains(MimeTypes.XML)) {
-        Right(headerVal)
-      } else {
-        Left(ErrorGenericBadRequest.XmlResult)
-      }
-    )
-  }
-
 }
 
 
 class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
-  /*
-  auth
-  conv
-  acc
-  cont
-   */
 
   private val uuidRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$".r
   private val xmlRegex = s"^${MimeTypes.XML}".r
@@ -112,12 +77,18 @@ class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
   override protected def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] = {
     Future.successful{
       for {
-       //_ <- extractAndValidate(r, "Accept", xmlRegex, ErrorAcceptHeaderInvalid).right
-        //_ <- extractAndValidate(r, "Content-Type", ".*".r, ErrorContentTypeHeaderInvalid).right
+        _ <- extractAndValidate(r, HeaderNames.ACCEPT, xmlRegex, ErrorAcceptHeaderInvalid).right
+        _ <- extractAndValidate(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid).right
         conversationId <- extractAndValidate(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
-        csid <- extractAndValidate(r, "AUTHORIZATION", csidRegex, ErrorContentTypeHeaderInvalid).right
-      } yield ExtractedHeadersRequest(UUID.fromString(conversationId), extractCsid(csid), r)
+        authHeader <- extractAndValidate(r, HeaderNames.AUTHORIZATION, csidRegex, ErrorGenericBadRequest).right
+      } yield ExtractedHeadersRequest(extractCsid(authHeader), UUID.fromString(conversationId), authHeader,  r)
     }
+  }
+
+  private def extractCsid(authHeadersId: String): UUID = {
+    val six = 6
+    val fortyTwo = 42
+    UUID.fromString(authHeadersId.substring(six, fortyTwo))
   }
 
   private def extractAndValidate[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
@@ -126,8 +97,9 @@ class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
       Left(errorResponse.XmlResult)
     })({
       headerValue : String =>
+
         val matcher = regex.pattern.matcher(headerValue)
-        if (!matcher.matches()) {
+        if (!matcher.find()) {
           Left(errorResponse.XmlResult)
         } else{
           Right(headerValue)
@@ -136,12 +108,4 @@ class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
   }
 }
 
-object ValidationAction {
-  def extractCsid(authHeadersId: String): UUID = {
-    val six = 6
-    val fortyTwo = 42
-    UUID.fromString(authHeadersId.substring(six, fortyTwo))
-  }
-}
-
-case class ExtractedHeadersRequest[A](csid: UUID, conversationId: UUID, request: Request[A]) extends WrappedRequest(request)
+case class ExtractedHeadersRequest[A](csid: UUID, conversationId: UUID, authHeader: String, request: Request[A]) extends WrappedRequest(request)

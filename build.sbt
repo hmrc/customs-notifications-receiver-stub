@@ -100,7 +100,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
     ,"Reverse.*"
     ,".*(AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimum := 90,
+  coverageMinimum := 98,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   parallelExecution in Test := false

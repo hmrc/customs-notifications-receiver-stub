@@ -11,8 +11,6 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 
 # TODO
 
-- header validation
-  - CONTENT_TYPE, ACCEPT  
 - some test descriptions are too vague
 - clear notifications endpoint
 - readme
