@@ -28,7 +28,7 @@ import uk.gov.hmrc.customs.notification.receiver.models.{CsId, CustomHeaderNames
 import scala.concurrent.Future
 import scala.util.matching.Regex
 
-class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
+class HeaderValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
 
   private val uuidRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$".r
   private val xmlRegex = s"^${MimeTypes.XML}.*".r
@@ -37,15 +37,15 @@ class ValidationAction extends ActionRefiner[Request, ExtractedHeadersRequest] {
   override protected def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] = {
     Future.successful{
       for {
-        _ <- extractAndValidate(r, HeaderNames.ACCEPT, xmlRegex, ErrorAcceptHeaderInvalid).right
-        _ <- extractAndValidate(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid).right
-        conversationId <- extractAndValidate(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
-        authHeader <- extractAndValidate(r, HeaderNames.AUTHORIZATION, csidRegex, ErrorGenericBadRequest).right
+        _ <- validateAndExtract(r, HeaderNames.ACCEPT, xmlRegex, ErrorAcceptHeaderInvalid).right
+        _ <- validateAndExtract(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid).right
+        conversationId <- validateAndExtract(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
+        authHeader <- validateAndExtract(r, HeaderNames.AUTHORIZATION, csidRegex, ErrorGenericBadRequest).right
       } yield ExtractedHeadersRequest(extractCsid(authHeader), UUID.fromString(conversationId), authHeader,  r)
     }
   }
 
-  private def extractAndValidate[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
+  private def validateAndExtract[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
     val mayBeHeaderValue = request.headers.get(headerName)
     mayBeHeaderValue.fold[Either[Result, String]]{
       Left(errorResponse.XmlResult)

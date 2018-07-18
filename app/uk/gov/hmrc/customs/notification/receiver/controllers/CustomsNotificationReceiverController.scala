@@ -37,12 +37,12 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
 
-  def post(): Action[AnyContent] = Action andThen new ValidationAction async{ implicit request =>
-    request.body.asXml match {
+  def post(): Action[AnyContent] = Action andThen new HeaderValidationAction async { implicit extractedHeadersRequest =>
+    extractedHeadersRequest.body.asXml match {
       case Some(xmlPayload) =>
-        val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+        val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
-        val notificationRequest = NotificationRequest(request.csid, request.conversationId, request.authHeader, seqOfHeader, payloadAsString)
+        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader, payloadAsString)
         persistenceService.persist(notificationRequest)
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
