@@ -20,7 +20,7 @@ import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorAcceptHeaderInvalid, ErrorContentTypeHeaderInvalid}
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorContentTypeHeaderInvalid
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
@@ -45,15 +45,5 @@ class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
       eitherResult shouldBe Left(ErrorContentTypeHeaderInvalid.XmlResult)
     }
 
-    "return 406 when ACCEPT header is invalid" in {
-      val eitherResult: Either[Result, ExtractedHeadersRequest[AnyContentAsEmpty.type]] = await(headerValidationAction.refine(FakeRequest()
-        .withHeaders( AUTHORIZATION -> ("Basic " + TestData.CsidOne),
-          CONTENT_TYPE -> "application/xml;charset=utf-8",
-          ACCEPT -> "invalid",
-          USER_AGENT -> "Customs Declaration Service",
-          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString)))
-
-      eitherResult shouldBe Left(ErrorAcceptHeaderInvalid.XmlResult)
-    }
   }
 }

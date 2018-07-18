@@ -40,12 +40,8 @@ object TestData {
     s"""{
       |  "csid": "$csid",
       |  "conversationId": "$conversationId",
-      |  "authHeaderToken": "Basic $csid",
+      |  "authHeaderToken": "$csid",
       |  "outboundCallHeaders": [
-      |    {
-      |      "name": "Accept",
-      |      "value":"application/xml"
-      |    },
       |    {
       |      "name": "User-Agent",
       |      "value": "Customs Declaration Service"
@@ -56,7 +52,7 @@ object TestData {
       |    },
       |    {
       |      "name": "Authorization",
-      |      "value": "Basic $csid"
+      |      "value": "$csid"
       |    },
       |    {
       |      "name": "Content-Length",
@@ -76,8 +72,7 @@ object TestData {
             |}""".stripMargin)
 
   val BadRequestXmlInvalidXml: NodeSeq = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
-  val AcceptHeaderInvalidXml: NodeSeq = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
-  val UnsupportedMediaTypeXml: NodeSeq = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
+   val UnsupportedMediaTypeXml: NodeSeq = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
 
   def notificationsResultJson(notifications: String *): JsValue = Json.parse {
     s"""[${notifications.mkString(",")}]""".stripMargin

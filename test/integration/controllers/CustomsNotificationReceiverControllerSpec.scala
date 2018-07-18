@@ -75,7 +75,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       "return NoContent when DELETE sent to pushNotifications endpoint" in {
         val eventualResult = route(app, FakeRequest(DELETE, s"/pushnotifications").withXmlBody(XmlPayload)
           .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne),
+            AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.XML,
             ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service"
@@ -98,7 +98,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
         val eventualResult2 = route(app, FakeRequest(DELETE, s"/pushnotifications").withXmlBody(XmlPayload)
           .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne),
+            AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.XML,
             ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service"
@@ -132,7 +132,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
           .withTextBody("SOm NOn XMl")
           .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne),
+            AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.XML,
             ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
@@ -156,7 +156,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
           .withXmlBody(XmlPayload)
           .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne.toString),
+            AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.TEXT,
             ACCEPT -> MimeTypes.XML,
             USER_AGENT -> "Customs Declaration Service",
@@ -168,21 +168,6 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         string2xml(x) mustBe UnsupportedMediaTypeXml
       }
 
-      "return 406 for incorrect Accept header" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
-          .withTextBody("<SOMEXML></SOMEXML>")
-          .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne.toString),
-            CONTENT_TYPE -> MimeTypes.XML,
-            ACCEPT -> MimeTypes.TEXT,
-            USER_AGENT -> "Customs Declaration Service",
-            CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
-          )).get
-
-        status(eventualResult) mustBe NOT_ACCEPTABLE
-        val x = contentAsString(eventualResult)
-        string2xml(x) mustBe AcceptHeaderInvalidXml
-      }
     }
   }
 
@@ -192,9 +177,8 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
     route(app, FakeRequest(POST, s"/pushnotifications")
       .withXmlBody(XmlPayload)
       .withHeaders(
-        AUTHORIZATION -> ("Basic " + csid),
+        AUTHORIZATION -> csid.toString,
         CONTENT_TYPE -> MimeTypes.XML,
-        ACCEPT -> MimeTypes.XML,
         USER_AGENT -> "Customs Declaration Service",
         CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId.toString
       )).get
