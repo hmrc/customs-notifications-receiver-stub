@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import java.util.UUID
-
 import play.api.mvc.{Request, WrappedRequest}
 
 case class ExtractedHeadersRequest[A](
- csid: UUID,
- conversationId: UUID,
+ csid: CsId,
+ conversationId: ConversationId,
  authHeader: String,
  request: Request[A]
 ) extends WrappedRequest(request)

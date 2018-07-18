@@ -23,7 +23,6 @@ This service provides:
 | ------------- | ------------------------------------------------------------------------------------------------ |
 | 204           | If the request is processed successful.                                                          |
 | 400           | This status code will be returned in case of incorrect data,incorrect data format, missing parameters etc. are provided in the request. |
-| 401           | If request has missing or invalid Authorization header (when configured to check the header).                                            |
 | 406           | If request has missing or invalid ACCEPT header.                                                   |
 | 415           | If request has missing or invalid Content-Type header.                                             |
 | 500           | In case of a system error such as time out, server down etc. ,this HTTP status code will be returned.|
@@ -32,11 +31,13 @@ This service provides:
 
 ### HTTP headers
 
+NOte we override the use of the `Authorization` header to contain the `CsId` (see below for details)
+
 | Header              | Mandatory/Optional | Description                                                                 |
 | -------------       | -------------------|---------------------------------------------------------------------------- |
 | `Content-Type`      | M                  |Fixed `application/xml; charset=UTF-8`                                       |
 | `Accept`            | M                  |Fixed `application/xml`                                                      |
-| `Authorization`     | M                  |`Basic cccc01f9-ec3b-4ede-b263-61b626dde232` Note the `Csid` is added after the `Basic` prefix |
+| `Authorization`     | M                  |`Basic cccc01f9-ec3b-4ede-b263-61b626dde232` Note the `CsId` is added after the `Basic` prefix |
 | `X-Conversation-ID` | M                  |This id was passed to Messaging when the declaration was passed onto Messaging earlier. This must be a UUID|
 
 ### Body
