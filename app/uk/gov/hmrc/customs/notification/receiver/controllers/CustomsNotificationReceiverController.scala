@@ -35,9 +35,11 @@ import scala.util.{Failure, Success, Try}
 
 
 @Singleton
-class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persistenceService: PersistenceService ) extends BaseController {
+class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
+                                                      headerValidationAction: HeaderValidationAction,
+                                                      persistenceService: PersistenceService ) extends BaseController {
 
-  def post(): Action[AnyContent] = Action andThen new HeaderValidationAction async { implicit extractedHeadersRequest =>
+  def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
     extractedHeadersRequest.body.asXml match {
       case Some(xmlPayload) =>
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq

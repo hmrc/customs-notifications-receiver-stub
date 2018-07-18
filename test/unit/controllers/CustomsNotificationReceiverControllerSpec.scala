@@ -21,19 +21,20 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import play.api.test.FakeRequest
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController
+import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.test.UnitSpec
 
 class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndAfterEach with MockitoSugar{
 
     val mockPersistenceService = mock[PersistenceService]
-    val mocklogger = mock[CdsLogger]
-    lazy val testController = new CustomsNotificationReceiverController(mocklogger, mockPersistenceService)
+    val mockHeaderValidationAction = mock[HeaderValidationAction]
+    val mockLogger = mock[CdsLogger]
+    lazy val testController = new CustomsNotificationReceiverController(mockLogger, mockHeaderValidationAction, mockPersistenceService)
 
 
   override def beforeEach(): Unit = {
-    reset(mockPersistenceService, mocklogger)
+    reset(mockPersistenceService, mockLogger)
     when(mockPersistenceService.clearAll()).thenReturn(())
   }
 
