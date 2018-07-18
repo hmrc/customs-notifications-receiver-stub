@@ -42,7 +42,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger, persis
       case Some(xmlPayload) =>
         val seqOfHeader = request.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
-        val notificationRequest = NotificationRequest(request.csid, request.conversationId.toString, request.authHeader, seqOfHeader, payloadAsString)
+        val notificationRequest = NotificationRequest(request.csid, request.conversationId, request.authHeader, seqOfHeader, payloadAsString)
         persistenceService.persist(notificationRequest)
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>

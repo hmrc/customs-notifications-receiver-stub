@@ -26,7 +26,7 @@ object Header{
 
 case class NotificationRequest(
   csid: CsId,
-  conversationId: String,
+  conversationId: ConversationId,
   authHeaderToken: String,
   outboundCallHeaders: Seq[Header],
   xmlPayload: String

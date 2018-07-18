@@ -70,14 +70,14 @@ object TestData {
       |  "xmlPayload": "${xmlPayload.toString}"
       |}""".stripMargin
 
-  val badRequestJsonInvalidCsid: JsValue = Json.parse("""{
+  val BadRequestJsonInvalidCsid: JsValue = Json.parse("""{
             |  "code": "BAD_REQUEST",
             |  "message": "Invalid UUID string: 1"
             |}""".stripMargin)
 
-  val badRequestXmlInvalidXml: NodeSeq = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
-  val acceptHeaderInvalidXml: NodeSeq = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
-  val unsupportedMediaTypeXml: NodeSeq = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
+  val BadRequestXmlInvalidXml: NodeSeq = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+  val AcceptHeaderInvalidXml: NodeSeq = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
+  val UnsupportedMediaTypeXml: NodeSeq = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
 
   def notificationsResultJson(notifications: String *): JsValue = Json.parse {
     s"""[${notifications.mkString(",")}]""".stripMargin

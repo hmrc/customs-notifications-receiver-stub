@@ -149,7 +149,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           )).get
 
         status(eventualResult) mustBe BAD_REQUEST
-        contentAsJson(eventualResult) mustBe badRequestJsonInvalidCsid
+        contentAsJson(eventualResult) mustBe BadRequestJsonInvalidCsid
       }
 
       "return 415 for incorrect ContentType header" in {
@@ -165,7 +165,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
         status(eventualResult) mustBe UNSUPPORTED_MEDIA_TYPE
         val x = contentAsString(eventualResult)
-        string2xml(x) mustBe unsupportedMediaTypeXml
+        string2xml(x) mustBe UnsupportedMediaTypeXml
       }
 
       "return 406 for incorrect Accept header" in {
@@ -181,7 +181,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
         status(eventualResult) mustBe NOT_ACCEPTABLE
         val x = contentAsString(eventualResult)
-        string2xml(x) mustBe acceptHeaderInvalidXml
+        string2xml(x) mustBe AcceptHeaderInvalidXml
       }
     }
   }
