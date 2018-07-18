@@ -16,8 +16,6 @@
 
 package integration.controllers
 
-import java.util.UUID
-
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.libs.json.Json
@@ -25,7 +23,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
 import play.mvc.Http.MimeTypes
-import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames}
 import util.TestData._
 
 import scala.concurrent.Future
@@ -35,24 +33,15 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
   "CustomsNotificationReceiverController" can {
     "In happy path" should {
 
-      "handle valid Post and respond appropriately" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
-          .withXmlBody(XmlPayload)
-          .withHeaders(
-            AUTHORIZATION -> ("Basic " + CsidOne.toString),
-            CONTENT_TYPE -> MimeTypes.XML,
-            ACCEPT -> MimeTypes.XML,
-            USER_AGENT -> "Customs Declaration Service",
-            CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
-          )).get
+      "return 200 response with a payload representing the inserted notification for a valid Post" in {
+        val eventualResult: Future[Result] = validPost(CsidOne, ConversationIdOne)
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
         contentAsJson(eventualResult) mustBe notificationRequestJson(CsidOne, ConversationIdOne)
       }
 
-      "return empty received requests for a client subscription Id that has no notifications" in {
-
+      "return empty list for a client subscription Id that has no notifications" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
 
         status(eventualResult) mustBe OK
@@ -60,19 +49,10 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         contentAsJson(eventualResult) mustBe Json.parse("[]")
       }
 
-      def callPostEndpoint(csid: UUID, conversationId: UUID): Result =  await(route(app, FakeRequest(POST, s"/pushnotifications").withXmlBody(XmlPayload)
-        .withHeaders(
-          AUTHORIZATION -> ("Basic " + csid),
-          CONTENT_TYPE -> MimeTypes.XML,
-          ACCEPT -> MimeTypes.XML,
-          USER_AGENT -> "Customs Declaration Service",
-          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId.toString
-        )).get)
-
       "return all received requests for a client subscription Id" in {
-        callPostEndpoint(CsidOne, ConversationIdOne)
-        callPostEndpoint(CsidOne, ConversationIdOne)
-        callPostEndpoint(CsidTwo, ConversationIdTwo)
+        awaitValidPost(CsidOne, ConversationIdOne)
+        awaitValidPost(CsidOne, ConversationIdOne)
+        awaitValidPost(CsidTwo, ConversationIdTwo)
 
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne)).get
 
@@ -93,7 +73,6 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return NoContent when DELETE sent to pushNotifications endpoint" in {
-
         val eventualResult = route(app, FakeRequest(DELETE, s"/pushnotifications").withXmlBody(XmlPayload)
           .withHeaders(
             AUTHORIZATION -> ("Basic " + CsidOne),
@@ -106,8 +85,8 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return empty received requests for a client subscription Id that had notifications but clear called" in {
-          callPostEndpoint(CsidOne, ConversationIdOne)
-          callPostEndpoint(CsidOne, ConversationIdOne)
+          awaitValidPost(CsidOne, ConversationIdOne)
+          awaitValidPost(CsidOne, ConversationIdOne)
 
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne)).get
 
@@ -132,9 +111,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         status(eventualResult3) mustBe OK
         contentType(eventualResult3) mustBe Some("application/json")
         contentAsJson(eventualResult3) mustBe Json.parse("[]")
-
       }
-
     }
 
     "In un happy path" should {
@@ -191,7 +168,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         string2xml(x) mustBe unsupportedMediaTypeXml
       }
 
-      "return 415 for incorrect Accept header" in {
+      "return 406 for incorrect Accept header" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
           .withTextBody("<SOMEXML></SOMEXML>")
           .withHeaders(
@@ -204,19 +181,22 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
         status(eventualResult) mustBe NOT_ACCEPTABLE
         val x = contentAsString(eventualResult)
-       string2xml(x) mustBe acceptHeaderInvalidXml
+        string2xml(x) mustBe acceptHeaderInvalidXml
       }
     }
   }
 
-  private def callPostEndpoint = {
-    await(route(app, FakeRequest(POST, s"/pushnotifications").withXmlBody(XmlPayload)
+  private def awaitValidPost(csid: CsId, conversationId: ConversationId): Result =  await(validPost(csid, conversationId))
+
+  private def validPost(csid: CsId, conversationId: ConversationId): Future[Result] =
+    route(app, FakeRequest(POST, s"/pushnotifications")
+      .withXmlBody(XmlPayload)
       .withHeaders(
-        AUTHORIZATION -> ("Basic " + CsidOne),
+        AUTHORIZATION -> ("Basic " + csid),
         CONTENT_TYPE -> MimeTypes.XML,
         ACCEPT -> MimeTypes.XML,
         USER_AGENT -> "Customs Declaration Service",
-        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
-      )).get)
-  }
+        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId.toString
+      )).get
+
 }

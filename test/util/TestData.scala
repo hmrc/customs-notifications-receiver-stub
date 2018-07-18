@@ -19,9 +19,10 @@ package util
 import java.util.UUID
 
 import play.api.libs.json.{JsValue, Json}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId}
 
 import scala.util.control.NonFatal
-import scala.xml.{Node, NodeSeq, Utility, XML}
+import scala.xml._
 
 object TestData {
 
@@ -33,9 +34,9 @@ object TestData {
   val HeaderTwo: (String, String) = "h2" -> "v2"
   val XmlPayload : NodeSeq = <stuff><moreXml>Stuff</moreXml></stuff>
 
-  def notificationRequestJson(csid: UUID, conversationId: UUID, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
+  def notificationRequestJson(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
 
-  def notificationRequest(csid: UUID, conversationId: UUID, xmlPayload: NodeSeq = XmlPayload): String =
+  def notificationRequest(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): String =
     s"""{
       |  "csid": "$csid",
       |  "conversationId": "$conversationId",
@@ -69,14 +70,14 @@ object TestData {
       |  "xmlPayload": "${xmlPayload.toString}"
       |}""".stripMargin
 
-  val badRequestJsonInvalidCsid = Json.parse("""{
+  val badRequestJsonInvalidCsid: JsValue = Json.parse("""{
             |  "code": "BAD_REQUEST",
             |  "message": "Invalid UUID string: 1"
             |}""".stripMargin)
 
-  val badRequestXmlInvalidXml = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
-  val acceptHeaderInvalidXml = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
-  val unsupportedMediaTypeXml = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
+  val badRequestXmlInvalidXml: NodeSeq = <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+  val acceptHeaderInvalidXml: NodeSeq = <errorResponse><code>ACCEPT_HEADER_INVALID</code><message>The accept header is missing or invalid</message></errorResponse>
+  val unsupportedMediaTypeXml: NodeSeq = <errorResponse><code>UNSUPPORTED_MEDIA_TYPE</code><message>The content type header is missing or invalid</message></errorResponse>
 
   def notificationsResultJson(notifications: String *): JsValue = Json.parse {
     s"""[${notifications.mkString(",")}]""".stripMargin

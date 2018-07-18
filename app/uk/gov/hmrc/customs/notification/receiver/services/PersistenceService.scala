@@ -17,9 +17,9 @@
 package uk.gov.hmrc.customs.notification.receiver.services
 
 import java.util.UUID
-
 import javax.inject.Singleton
-import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest
+
+import uk.gov.hmrc.customs.notification.receiver.models.{CsId, NotificationRequest}
 
 import scala.collection.immutable.Seq
 
@@ -35,7 +35,7 @@ class PersistenceService {
     }
   }
 
-  def notificationsById(csid: UUID): Seq[NotificationRequest] = {
+  def notificationsById(csid: CsId): Seq[NotificationRequest] = {
     notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
   }
 

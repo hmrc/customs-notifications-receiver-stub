@@ -14,25 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.models
+package uk.gov.hmrc.customs.notification.receiver
 
-import play.api.libs.json.{Format, Json}
+import java.util.UUID
 
-case class Header(name: String, value: String)
-
-object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
-}
-
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: String,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
+package object models {
+  type ConversationId = UUID
+  type CsId = UUID
 }
