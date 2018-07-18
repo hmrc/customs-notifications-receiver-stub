@@ -3,8 +3,8 @@
 This service provides: 
 
 - An `POST` endpoint for receiving notification. These are stored in the order they were sent, keyed by 
-  Client Subscription ID (`CsdId`) which is a UID 
-- An `GET` endpoint for retrieving all notifications for a `CsdId`
+  Client Subscription ID (`CsId`) which is a UID 
+- An `GET` endpoint for retrieving all notifications for a `CsId`
 - An `DELETE` endpoint for clearing all stored notifications.
          
 # `POST` endpoint for receiving notification
@@ -78,7 +78,7 @@ The Response body will contain the payload that was saved eg:
 }     
 ```
       
-# `GET` endpoint for retrieving all notifications for a `CsdId`  
+# `GET` endpoint for retrieving all notifications for a `CsId`  
 
 ## Request
 
