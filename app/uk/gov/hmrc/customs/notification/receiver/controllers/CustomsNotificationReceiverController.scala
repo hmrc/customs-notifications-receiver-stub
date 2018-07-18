@@ -16,32 +16,55 @@
 
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
-import com.google.inject.Inject
+import java.util.UUID
 import javax.inject.Singleton
-import play.api.mvc
-import play.api.mvc.Action
+
+import com.google.inject.Inject
+import play.api.libs.json.Json
+import play.api.mvc._
+import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
+import uk.gov.hmrc.customs.notification.receiver.models.{Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
+import scala.collection.immutable.Seq
 import scala.concurrent.Future
-import scala.xml.NodeSeq
+import scala.util.{Failure, Success, Try}
 
 
 @Singleton
-class CustomsNotificationReceiverController @Inject()(logger : CdsLogger) extends BaseController {
+class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
+                                                      headerValidationAction: HeaderValidationAction,
+                                                      persistenceService: PersistenceService ) extends BaseController {
 
-  def helloWorld: Action[mvc.AnyContent] = Action {
-    logger.info("Received GET Request")
-    Ok("Hello World!!")
-  }
-
-  def post(): Action[NodeSeq] = Action.async(parse.xml) { req =>
-    req.body.map {
-      xml =>
-        logger.info(xml.toString())
+  def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
+    extractedHeadersRequest.body.asXml match {
+      case Some(xmlPayload) =>
+        val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+        val payloadAsString = xmlPayload.toString
+        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader, payloadAsString)
+        persistenceService.persist(notificationRequest)
+        Future.successful(Ok(Json.toJson(notificationRequest)))
+      case None =>
+        Future.successful(errorBadRequest("Invalid Xml").XmlResult)
     }
-    req.headers.toSimpleMap.foreach(header => logger.info("Header Received: " + header._1 + " - " + header._2))
-    Future.successful(Ok("ok"))
   }
 
+  def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
+    Try(UUID.fromString(csid)) match {
+      case Success(csidUuid) =>
+        val notifications: Seq[NotificationRequest] = persistenceService.notificationsById(csidUuid)
+        Future.successful(Ok(Json.toJson(notifications)))
+      case Failure(e) =>
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
+  }
+
+  def clearNotifications(): Action[AnyContent] = Action.async { _ =>
+    persistenceService.clearAll()
+    Future.successful(NoContent)
+  }
 }
+

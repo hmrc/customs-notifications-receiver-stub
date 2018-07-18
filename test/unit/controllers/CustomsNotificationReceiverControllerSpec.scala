@@ -16,39 +16,30 @@
 
 package unit.controllers
 
-import org.scalatestplus.play._
-import play.api.mvc.Result
-import play.api.test.Helpers._
-import play.api.test._
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
+import play.api.test.FakeRequest
+import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
+import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
+import uk.gov.hmrc.play.test.UnitSpec
 
-import scala.concurrent.Future
-import scala.xml.NodeSeq
+class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndAfterEach with MockitoSugar{
 
-class CustomsNotificationReceiverControllerSpec extends PlaySpec with OneAppPerTest {
+    val mockPersistenceService = mock[PersistenceService]
+    val mockHeaderValidationAction = mock[HeaderValidationAction]
+    val mockLogger = mock[CdsLogger]
+    lazy val testController = new CustomsNotificationReceiverController(mockLogger, mockHeaderValidationAction, mockPersistenceService)
 
 
-  "CustomsNotificationReceiverController" should {
-
-    "handle valid get and respond appropriately" in {
-      val home: Future[Result] = route(app, FakeRequest(GET, "/api")).get
-
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/plain")
-      contentAsString(home) must include("Hello World!!")
-    }
-
-    "handle valid Post and respond appropriately" in {
-      val xmlBody : NodeSeq = <stuff>
-                                <moreXml>Stuff</moreXml>
-                              </stuff>
-      val home: Future[Result] = route(app, FakeRequest(POST, "/api").withXmlBody(xmlBody)).get
-
-      status(home) mustBe OK
-      contentType(home) mustBe Some("text/plain")
-      contentAsString(home) must include("ok")
-    }
+  override def beforeEach(): Unit = {
+    reset(mockPersistenceService, mockLogger)
+    when(mockPersistenceService.clearAll()).thenReturn(())
   }
 
-
-
+  "clear endpoint should call clearNotifications in Service" should {
+    await(testController.clearNotifications().apply(FakeRequest()))
+    verify(mockPersistenceService).clearAll()
+  }
 }
