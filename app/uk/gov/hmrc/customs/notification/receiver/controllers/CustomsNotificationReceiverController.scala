@@ -45,6 +45,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader, payloadAsString)
+        logger.debug(s"Received Notification for :${notificationRequest.csid}")
         persistenceService.persist(notificationRequest)
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
@@ -53,6 +54,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
+    logger.debug(s"Trying to get Notifications by CsId:${csid}")
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
         val notifications: Seq[NotificationRequest] = persistenceService.notificationsById(csidUuid)
@@ -63,6 +65,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>
+    logger.debug("Clearing down Notifications")
     persistenceService.clearAll()
     Future.successful(NoContent)
   }
