@@ -42,7 +42,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return empty list for a client subscription Id that has no notifications" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -54,7 +54,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         awaitValidPost(CsidOne, ConversationIdOne)
         awaitValidPost(CsidTwo, ConversationIdTwo)
 
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne)).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne)).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -63,7 +63,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           notificationRequest(CsidOne, ConversationIdOne)
         )
 
-        val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidTwo)).get
+        val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidTwo)).get
 
         status(eventualResult2) mustBe OK
         contentType(eventualResult2) mustBe Some("application/json")
@@ -73,7 +73,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return NoContent when DELETE sent to pushNotifications endpoint" in {
-        val eventualResult = route(app, FakeRequest(DELETE, s"/pushnotifications").withXmlBody(XmlPayload)
+        val eventualResult = route(app, FakeRequest(DELETE, "/customs-notifications-receiver-stub/pushnotifications").withXmlBody(XmlPayload)
           .withHeaders(
             AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.XML,
@@ -88,7 +88,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           awaitValidPost(CsidOne, ConversationIdOne)
           awaitValidPost(CsidOne, ConversationIdOne)
 
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne)).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne)).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -96,7 +96,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
           notificationRequest(CsidOne, ConversationIdOne),
           notificationRequest(CsidOne, ConversationIdOne))
 
-        val eventualResult2 = route(app, FakeRequest(DELETE, s"/pushnotifications").withXmlBody(XmlPayload)
+        val eventualResult2 = route(app, FakeRequest(DELETE, "/customs-notifications-receiver-stub/pushnotifications").withXmlBody(XmlPayload)
           .withHeaders(
             AUTHORIZATION -> CsidOne.toString,
             CONTENT_TYPE -> MimeTypes.XML,
@@ -106,7 +106,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
         status(eventualResult2) mustBe NO_CONTENT
 
-        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
 
         status(eventualResult3) mustBe OK
         contentType(eventualResult3) mustBe Some("application/json")
@@ -116,7 +116,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
     "In un happy path" should {
       "return 400 for POST of notification when Authorisation header is missing" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
           .withXmlBody(XmlPayload)
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.XML,
@@ -129,7 +129,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return 400 for POST of notification when payload is invalid" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
           .withTextBody("SOm NOn XMl")
           .withHeaders(
             AUTHORIZATION -> CsidOne.toString,
@@ -143,7 +143,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return 400 for GET of notifications when csid is invalid" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/pushnotifications/1")
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/1")
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.JSON
           )).get
@@ -153,7 +153,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
       }
 
       "return 415 for incorrect ContentType header" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/pushnotifications")
+        val eventualResult: Future[Result] = route(app, FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
           .withXmlBody(XmlPayload)
           .withHeaders(
             AUTHORIZATION -> CsidOne.toString,
@@ -174,7 +174,7 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
   private def awaitValidPost(csid: CsId, conversationId: ConversationId): Result =  await(validPost(csid, conversationId))
 
   private def validPost(csid: CsId, conversationId: ConversationId): Future[Result] =
-    route(app, FakeRequest(POST, s"/pushnotifications")
+    route(app, FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
       .withXmlBody(XmlPayload)
       .withHeaders(
         AUTHORIZATION -> csid.toString,
