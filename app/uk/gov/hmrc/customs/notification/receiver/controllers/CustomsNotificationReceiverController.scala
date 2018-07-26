@@ -25,7 +25,7 @@ import play.api.mvc._
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
-import uk.gov.hmrc.customs.notification.receiver.models.{Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{CountsGroupedByCsidAndConversationId, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
@@ -54,7 +54,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
-    logger.debug(s"Trying to get Notifications by CsId:${csid}")
+    logger.debug(s"Trying to get Notifications by CsId:$csid")
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
         val notifications: Seq[NotificationRequest] = persistenceService.notificationsById(csidUuid)
@@ -62,6 +62,21 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
       case Failure(e) =>
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
+  }
+
+  def countNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
+    Try(UUID.fromString(csid)) match {
+      case Success(csidUuid) =>
+        val notifications: Seq[NotificationRequest] = persistenceService.notificationsById(csidUuid)
+        Future.successful(Ok(Json.parse(s"""{"count": "${notifications.size}"}""")))
+      case Failure(e) =>
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
+  }
+
+  def countNotificationGroupedByCsIdAndConversationId: Action[AnyContent] = Action.async { _ =>
+    val counts: Seq[CountsGroupedByCsidAndConversationId] = persistenceService.countsByGroupedByCsidAndConversationId
+    Future.successful(Ok(Json.toJson(counts)))
   }
 
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>

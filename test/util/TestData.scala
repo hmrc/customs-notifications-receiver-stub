@@ -66,6 +66,28 @@ object TestData {
       |  "xmlPayload": "${xmlPayload.toString}"
       |}""".stripMargin
 
+  val countsJson: JsValue = Json.parse(
+    """[
+     |  {
+     |    "csid": "ffff01f9-ec3b-4ede-b263-61b626dde232",
+     |    "countsByConversationId": [
+     |      {
+     |        "conversationId": "eaca01f9-ec3b-4ede-b263-61b626dde232",
+     |        "count": 2
+     |      }
+     |    ]
+     |  },
+     |  {
+     |    "csid": "ffff01f9-ec3b-4ede-b263-61b626dde239",
+     |    "countsByConversationId": [
+     |      {
+     |        "conversationId": "eaca01f9-ec3b-4ede-b263-61b626dde239",
+     |        "count": 1
+     |      }
+     |    ]
+     |  }
+     |]""".stripMargin)
+
   val BadRequestJsonInvalidCsid: JsValue = Json.parse("""{
             |  "code": "BAD_REQUEST",
             |  "message": "Invalid UUID string: 1"

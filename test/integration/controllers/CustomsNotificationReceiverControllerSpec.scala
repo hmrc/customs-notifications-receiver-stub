@@ -70,6 +70,24 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         contentAsJson(eventualResult2) mustBe notificationsResultJson(
           notificationRequest(CsidTwo, ConversationIdTwo)
         )
+
+        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/" + CsidOne)).get
+
+        status(eventualResult3) mustBe OK
+        contentType(eventualResult3) mustBe Some("application/json")
+        contentAsJson(eventualResult3) mustBe Json.parse("""{"count": "2"}""")
+
+        val eventualResult4: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/" + CsidTwo)).get
+
+        status(eventualResult4) mustBe OK
+        contentType(eventualResult4) mustBe Some("application/json")
+        contentAsJson(eventualResult4) mustBe Json.parse("""{"count": "1"}""")
+
+        val eventualResult5: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/counts")).get
+
+        status(eventualResult5) mustBe OK
+        contentType(eventualResult5) mustBe Some("application/json")
+        contentAsJson(eventualResult5) mustBe countsJson
       }
 
       "return NoContent when DELETE sent to pushNotifications endpoint" in {
@@ -144,6 +162,16 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
 
       "return 400 for GET of notifications when csid is invalid" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/1")
+          .withHeaders(
+            CONTENT_TYPE -> MimeTypes.JSON
+          )).get
+
+        status(eventualResult) mustBe BAD_REQUEST
+        contentAsJson(eventualResult) mustBe BadRequestJsonInvalidCsid
+      }
+
+      "return 400 for GET of count by csid when csid is invalid" in {
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/1")
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.JSON
           )).get

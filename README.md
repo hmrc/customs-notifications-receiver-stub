@@ -13,7 +13,7 @@ Instructions for seeding this data can be found below.
 # `POST` endpoint for receiving notification
 
     curl -X POST \
-      http://localhost:9826/pushnotifications \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications \
       -H 'authorization: Basic aaaa01f9-ec3b-4ede-b263-61b626dde232' \
       -H 'content-type: application/xml' \
       -H 'x-conversation-id: xxxx01f9-ec3b-4ede-b263-61b626dde232' \
@@ -83,9 +83,8 @@ The Response body will contain the payload that was saved eg:
 ## Request
 
     curl -X GET \
-      http://localhost:9826/pushnotifications/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/ffff01f9-ec3b-4ede-b263-61b626dde232 \
       -H 'accept: application/json' \
-      -H 'cache-control: no-cache' \
       -H 'content-type: application/json' \
       
 ## HTTP return codes
@@ -131,6 +130,24 @@ The Response body will contain the payload that was saved eg:
 ]
 ```
 
+# `GET` endpoint for getting counts of notifications for a `CsId`  
+
+## Request
+
+    curl -X GET \
+      http://localhost:9826/customs-notifications-receiver-stub/count/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      -H 'accept: application/json' \
+      -H 'content-type: application/json' \
+
+# `GET` endpoint for getting counts of notifications grouped by `Csid` and `ConversationId`   
+
+## Request
+
+    curl -X GET \
+      http://localhost:9826/customs-notifications-receiver-stub/counts \
+      -H 'accept: application/json' \
+      -H 'content-type: application/json' \
+      
 # `DELETE` endpoint for clearing all stored notifications.
 
 ## HTTP return codes
@@ -143,7 +160,7 @@ The Response body will contain the payload that was saved eg:
 
 ## Request
 
-    curl -X DELETE http://localhost:9826/pushnotifications
+    curl -X DELETE http://localhost:9826/customs-notifications-receiver-stub/pushnotifications
     
 ## Response
 
@@ -153,7 +170,7 @@ The Response body will contain the payload that was saved eg:
 Note that you will have to seed Declarant URL and SecurityToken data. This can be done by using a curl statement similar to 
 the one below:
   
-    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
+    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
   
 
 ### License
