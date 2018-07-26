@@ -19,9 +19,9 @@ package uk.gov.hmrc.customs.notification.receiver.services
 import java.util.UUID
 import javax.inject.Singleton
 
-import uk.gov.hmrc.customs.notification.receiver.models.{CsId, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models._
 
-import scala.collection.immutable.Seq
+import scala.collection.immutable.{Iterable, Seq}
 
 @Singleton
 class PersistenceService {
@@ -37,6 +37,18 @@ class PersistenceService {
 
   def notificationsById(csid: CsId): Seq[NotificationRequest] = {
     notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
+  }
+
+  def countsByGroupedByCsidAndConversationId: Seq[CountsByGroupedByCsidAndConversationId] = {
+    val result = notificationsByCsidMap.map(t => CountsByGroupedByCsidAndConversationId(t._1, countsByConversationId(t._2)))
+    result.to[collection.immutable.Seq]
+  }
+
+  private def countsByConversationId(ns: Seq[NotificationRequest]): Seq[CountsByConversationId] = {
+    val groupedBy: Map[ConversationId, Seq[NotificationRequest]] = ns.groupBy(foo => foo.conversationId)
+    val listGroupedBy: Map[ConversationId, Int] = groupedBy.mapValues(_.size)
+    val result: Iterable[CountsByConversationId] = listGroupedBy.map(t => CountsByConversationId(t._1, t._2))
+    result.to[collection.immutable.Seq]
   }
 
   def clearAll(): Unit = notificationsByCsidMap.clear

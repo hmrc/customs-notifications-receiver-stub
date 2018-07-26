@@ -16,30 +16,51 @@
 
 package unit.controllers
 
+import akka.util.Timeout
+import controllers.Default
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
-import play.api.test.FakeRequest
+import org.scalatest.{BeforeAndAfterEach, Matchers}
+import play.api.test.Helpers.{AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
+import play.api.test.{FakeRequest, Helpers}
+import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
+import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.test.UnitSpec
+import util.TestData._
 
-class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndAfterEach with MockitoSugar{
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
-    val mockPersistenceService = mock[PersistenceService]
-    val mockHeaderValidationAction = mock[HeaderValidationAction]
-    val mockLogger = mock[CdsLogger]
-    lazy val testController = new CustomsNotificationReceiverController(mockLogger, mockHeaderValidationAction, mockPersistenceService)
+class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndAfterEach with MockitoSugar with Matchers {
+  implicit val timeout = Timeout(5 seconds)
 
-
-  override def beforeEach(): Unit = {
-    reset(mockPersistenceService, mockLogger)
-    when(mockPersistenceService.clearAll()).thenReturn(())
+  trait Setup {
+    val mockPersistenceService: PersistenceService = mock[PersistenceService]
+    val mockHeaderValidationAction: HeaderValidationAction = mock[HeaderValidationAction]
+    val mockLogger: CdsLogger = mock[CdsLogger]
+    lazy val testController: CustomsNotificationReceiverController = new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger), mockPersistenceService)
   }
 
-  "clear endpoint should call clearNotifications in Service" should {
-    await(testController.clearNotifications().apply(FakeRequest()))
-    verify(mockPersistenceService).clearAll()
+  "CustomsNotificationReceiverController" should {
+    "clear endpoint should call clearNotifications in Service" in new Setup {
+      await(testController.clearNotifications().apply(FakeRequest()))
+
+      verify(mockPersistenceService).clearAll()
+    }
+
+    "return 400 when request body is not XML" in new Setup {
+      private val result = testController.post().apply(FakeRequest().withTextBody("INVALID") withHeaders(
+        AUTHORIZATION -> CsidOne.toString,
+        CONTENT_TYPE -> MimeTypes.XML,
+        USER_AGENT -> "Customs Declaration Service",
+        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+      ))
+
+      Helpers.status(result) shouldBe Default.BAD_REQUEST
+      string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+    }
   }
 }
