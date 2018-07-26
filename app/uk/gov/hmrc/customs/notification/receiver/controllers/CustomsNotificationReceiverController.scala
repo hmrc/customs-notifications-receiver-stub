@@ -24,9 +24,8 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.models.CountsByGroupedByCsidAndConversationId._
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
-import uk.gov.hmrc.customs.notification.receiver.models.{CountsByGroupedByCsidAndConversationId, Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{CountsGroupedByCsidAndConversationId, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
@@ -76,7 +75,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def countNotificationGroupedByCsIdAndConversationId: Action[AnyContent] = Action.async { _ =>
-    val counts: Seq[CountsByGroupedByCsidAndConversationId] = persistenceService.countsByGroupedByCsidAndConversationId
+    val counts: Seq[CountsGroupedByCsidAndConversationId] = persistenceService.countsByGroupedByCsidAndConversationId
     Future.successful(Ok(Json.toJson(counts)))
   }
 

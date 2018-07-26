@@ -39,8 +39,8 @@ class PersistenceService {
     notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
   }
 
-  def countsByGroupedByCsidAndConversationId: Seq[CountsByGroupedByCsidAndConversationId] = {
-    val result = notificationsByCsidMap.map(t => CountsByGroupedByCsidAndConversationId(t._1, countsByConversationId(t._2)))
+  def countsByGroupedByCsidAndConversationId: Seq[CountsGroupedByCsidAndConversationId] = {
+    val result = notificationsByCsidMap.map(t => CountsGroupedByCsidAndConversationId(t._1, countsByConversationId(t._2)))
     result.to[collection.immutable.Seq]
   }
 

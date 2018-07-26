@@ -83,7 +83,7 @@ The Response body will contain the payload that was saved eg:
 ## Request
 
     curl -X GET \
-      http://localhost:9826/customs-notifications-receiver-stub/customs-notifications-receiver-stub/pushnotifications/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/ffff01f9-ec3b-4ede-b263-61b626dde232 \
       -H 'accept: application/json' \
       -H 'content-type: application/json' \
       
@@ -170,7 +170,7 @@ The Response body will contain the payload that was saved eg:
 Note that you will have to seed Declarant URL and SecurityToken data. This can be done by using a curl statement similar to 
 the one below:
   
-    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
+    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
   
 
 ### License

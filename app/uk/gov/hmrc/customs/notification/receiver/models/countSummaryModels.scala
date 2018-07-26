@@ -23,7 +23,7 @@ object CountsByConversationId {
   implicit val format: Format[CountsByConversationId] = Json.format[CountsByConversationId]
 }
 
-case class CountsByGroupedByCsidAndConversationId(csid: CsId, countsByConversationId: Seq[CountsByConversationId])
-object CountsByGroupedByCsidAndConversationId {
-  implicit val format: Format[CountsByGroupedByCsidAndConversationId] = Json.format[CountsByGroupedByCsidAndConversationId]
+case class CountsGroupedByCsidAndConversationId(csid: CsId, countsByConversationId: Seq[CountsByConversationId])
+object CountsGroupedByCsidAndConversationId {
+  implicit val format: Format[CountsGroupedByCsidAndConversationId] = Json.format[CountsGroupedByCsidAndConversationId]
 }
