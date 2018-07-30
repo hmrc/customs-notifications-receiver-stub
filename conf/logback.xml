@@ -47,7 +47,7 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <logger name="customs-notification-receiver-stub" level="${logger.customs-notification-receiver-stub:-DEBUG}"/>
+    <logger name="customs-notifications-receiver-stub" level="${logger.customs-notifications-receiver-stub:-DEBUG}"/>
 
     <root level="ERROR">
         <appender-ref ref="FILE"/>
