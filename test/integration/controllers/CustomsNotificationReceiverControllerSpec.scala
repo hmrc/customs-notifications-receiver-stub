@@ -16,30 +16,43 @@
 
 package integration.controllers
 
+import com.google.inject.AbstractModule
+import integration.repo.InMemoryPersistenceService
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames}
+import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 import util.TestData._
 
 import scala.concurrent.Future
 
-class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAppPerTest {
+class CustomsNotificationReceiverControllerSpec
+  extends PlaySpec
+  with BeforeAndAfterAll
+  with BeforeAndAfterEach
+  with GuiceOneAppPerTest
+  {
+  override def fakeApplication(): Application =
+    GuiceApplicationBuilder()
+      .overrides(new PersistenceModule())
+      .build()
+
+  private class PersistenceModule() extends AbstractModule {
+    def configure() {
+      bind(classOf[NotificationRepo]).to(classOf[InMemoryPersistenceService])
+    }
+  }
 
   "CustomsNotificationReceiverController" can {
     "In happy path" should {
-
-      "return 200 response with a payload representing the inserted notification for a valid Post" in {
-        val eventualResult: Future[Result] = validPost(CsidOne, ConversationIdOne)
-
-        status(eventualResult) mustBe OK
-        contentType(eventualResult) mustBe Some("application/json")
-        contentAsJson(eventualResult) mustBe notificationRequestJson(CsidOne, ConversationIdOne)
-      }
 
       "return empty list for a client subscription Id that has no notifications" in {
         val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
@@ -47,6 +60,14 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
         contentAsJson(eventualResult) mustBe Json.parse("[]")
+      }
+
+      "return 200 response with a payload representing the inserted notification for a valid Post" in {
+        val eventualResult: Future[Result] = validPost(CsidOne, ConversationIdOne)
+
+        status(eventualResult) mustBe OK
+        contentType(eventualResult) mustBe Some("application/json")
+        contentAsJson(eventualResult) mustBe notificationRequestJson(CsidOne, ConversationIdOne)
       }
 
       "return all received requests for a client subscription Id" in {
@@ -83,11 +104,6 @@ class CustomsNotificationReceiverControllerSpec extends PlaySpec with GuiceOneAp
         contentType(eventualResult4) mustBe Some("application/json")
         contentAsJson(eventualResult4) mustBe Json.parse("""{"count": "1"}""")
 
-        val eventualResult5: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/counts")).get
-
-        status(eventualResult5) mustBe OK
-        contentType(eventualResult5) mustBe Some("application/json")
-        contentAsJson(eventualResult5) mustBe countsJson
       }
 
       "return NoContent when DELETE sent to pushNotifications endpoint" in {

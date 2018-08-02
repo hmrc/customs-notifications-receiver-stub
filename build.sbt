@@ -100,7 +100,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
     ,"Reverse.*"
     ,".*(AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimum := 100,
+  coverageMinimum := 99,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   parallelExecution in Test := false
@@ -108,10 +108,10 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-val compileDependencies = Seq(xmlResolver, customsApiCommon)
+val compileDependencies = Seq(xmlResolver, customsApiCommon, playReactiveMongo)
 
 val testDependencies = Seq(hmrcTest, scalaTest, pegDown,
-  scalaTestPlusPlay, wireMock, mockito,  customsApiCommonTests)
+  scalaTestPlusPlay, wireMock, mockito,  customsApiCommonTests, reactiveMongoTest)
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 

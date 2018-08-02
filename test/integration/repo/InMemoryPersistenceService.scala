@@ -14,42 +14,38 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.services
+package integration.repo
 
 import java.util.UUID
 import javax.inject.Singleton
 
 import uk.gov.hmrc.customs.notification.receiver.models._
+import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 
-import scala.collection.immutable.{Iterable, Seq}
+import scala.collection.immutable.Seq
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class PersistenceService {
+class InMemoryPersistenceService extends NotificationRepo {
 
   private val notificationsByCsidMap = scala.collection.mutable.Map[UUID, Seq[NotificationRequest]]()
 
-  def persist(notificationRequest: NotificationRequest): Unit = {
+  def persist(notificationRequest: NotificationRequest): Future[Boolean] = {
     notificationsByCsidMap.get(notificationRequest.csid).fold[Unit](notificationsByCsidMap.put(notificationRequest.csid, Seq(notificationRequest))) { notifications: Seq[NotificationRequest] =>
       val newList = notifications :+ notificationRequest
       notificationsByCsidMap.put(notificationRequest.csid, newList)
     }
+    Future.successful(true)
   }
 
-  def notificationsById(csid: CsId): Seq[NotificationRequest] = {
-    notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
+  def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] = {
+    Future.successful(
+      notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
+    )
   }
 
-  def countsByGroupedByCsidAndConversationId: Seq[CountsGroupedByCsidAndConversationId] = {
-    val result = notificationsByCsidMap.map(t => CountsGroupedByCsidAndConversationId(t._1, countsByConversationId(t._2)))
-    result.to[collection.immutable.Seq]
-  }
+  def clearAll(): Future[Unit] = Future.successful(notificationsByCsidMap.clear)
 
-  private def countsByConversationId(ns: Seq[NotificationRequest]): Seq[CountsByConversationId] = {
-    val groupedBy: Map[ConversationId, Seq[NotificationRequest]] = ns.groupBy(foo => foo.conversationId)
-    val listGroupedBy: Map[ConversationId, Int] = groupedBy.mapValues(_.size)
-    val result: Iterable[CountsByConversationId] = listGroupedBy.map(t => CountsByConversationId(t._1, t._2))
-    result.to[collection.immutable.Seq]
-  }
-
-  def clearAll(): Unit = notificationsByCsidMap.clear
+  def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)
 }

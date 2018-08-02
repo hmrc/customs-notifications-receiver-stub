@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.models
+package uk.gov.hmrc.customs.notification.receiver.repo
 
-import play.api.libs.json.{Format, Json}
+import com.google.inject.ImplementedBy
+import uk.gov.hmrc.customs.notification.receiver.models.{CsId, NotificationRequest}
 
-case class Header(name: String, value: String)
+import scala.collection.immutable.Seq
+import scala.concurrent.Future
 
-object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+@ImplementedBy(classOf[MongoNotificationsRepo])
+trait NotificationRepo {
+
+  def persist(notificationRequest: NotificationRequest): Future[Boolean]
+
+  def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]]
+
+  def notificationCountByCsId(csid: CsId): Future[Int]
+
+  def clearAll(): Future[Unit]
 }
-
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
-}
-

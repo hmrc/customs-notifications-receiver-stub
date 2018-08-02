@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.models
+package uk.gov.hmrc.customs.notification.receiver.repo
 
-import play.api.libs.json.{Format, Json}
+import javax.inject.Singleton
 
-case class Header(name: String, value: String)
+import com.google.inject.{ImplementedBy, Inject}
+import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.DB
 
-object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+@ImplementedBy(classOf[MongoDb])
+trait MongoDbProvider {
+  def mongo: () => DB
 }
 
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
+@Singleton
+class MongoDb @Inject()(reactiveMongoComponent: ReactiveMongoComponent)  extends MongoDbProvider {
+  override val mongo: () => DB = reactiveMongoComponent.mongoConnector.db
 }
-

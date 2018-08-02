@@ -19,7 +19,7 @@ package util
 import java.util.UUID
 
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
 
 import scala.util.control.NonFatal
 import scala.xml._
@@ -33,6 +33,12 @@ object TestData {
   val HeaderOne: (String, String) = "h1" -> "v1"
   val HeaderTwo: (String, String) = "h2" -> "v2"
   val XmlPayload : NodeSeq = <stuff><moreXml>Stuff</moreXml></stuff>
+
+
+  val AuthToken = "AUTH_TOKEN"
+  val NotificationRequestOne = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>OneOfTwo</foo>")
+  val NotificationRequestOneTwo = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>TwoOfTwo</foo>")
+  val NotificationRequestTwo = NotificationRequest(CsidTwo, ConversationIdTwo, AuthToken, Seq.empty, s"<foo>$CsidTwo</foo>")
 
   def notificationRequestJson(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
 

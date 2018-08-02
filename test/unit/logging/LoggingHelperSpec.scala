@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.models
+package unit.logging
 
-import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.customs.notification.receiver.logging.LoggingHelper
+import uk.gov.hmrc.play.test.UnitSpec
+import util.TestData._
 
-case class Header(name: String, value: String)
+class LoggingHelperSpec extends UnitSpec {
 
-object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+  "LoggingHelper" should {
+    "format log message" in {
+      LoggingHelper.logMsgPrefix(NotificationRequestOne) shouldBe "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232]"
+    }
+  }
+
 }
-
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
-}
-
