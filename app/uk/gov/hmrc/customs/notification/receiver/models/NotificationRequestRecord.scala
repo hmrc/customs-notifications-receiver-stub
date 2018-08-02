@@ -16,24 +16,18 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import play.api.libs.json.{Format, Json}
+import org.joda.time.DateTime
+import play.api.libs.json.Json
+import reactivemongo.bson.BSONObjectID
+import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-case class Header(name: String, value: String)
-
-object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+case class NotificationRequestRecord(
+                notification: NotificationRequest,
+                timeReceived: Option[DateTime] = None,
+                id: BSONObjectID = BSONObjectID.generate
+              )
+case object NotificationRequestRecord {
+  implicit val dateFormats = ReactiveMongoFormats.dateTimeFormats
+  implicit val idFormat = reactivemongo.play.json.BSONFormats.BSONObjectIDFormat
+  implicit val format = ReactiveMongoFormats.mongoEntity(Json.format[NotificationRequestRecord])
 }
-
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
-}
-

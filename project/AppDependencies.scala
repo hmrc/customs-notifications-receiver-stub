@@ -10,6 +10,7 @@ object AppDependencies {
   private val wireMockVersion = "2.17.0"
   private val customsApiCommonVersion = "1.27.0"
   private val testScope = "test,it"
+  private val playReactivemongoVersion = "6.2.0"
 
   val xmlResolver = "xml-resolver" % "xml-resolver" % "1.2"
 
@@ -26,6 +27,10 @@ object AppDependencies {
   val mockito =  "org.mockito" % "mockito-core" % mockitoVersion % testScope
 
   val customsApiCommon = "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion
+
+  val playReactiveMongo = "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion
+
+  val reactiveMongoTest = "uk.gov.hmrc" %% "reactivemongo-test" % "3.1.0" % testScope
 
   val customsApiCommonTests = "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion % testScope classifier "tests"
 

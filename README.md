@@ -139,15 +139,6 @@ The Response body will contain the payload that was saved eg:
       -H 'accept: application/json' \
       -H 'content-type: application/json' \
 
-# `GET` endpoint for getting counts of notifications grouped by `Csid` and `ConversationId`   
-
-## Request
-
-    curl -X GET \
-      http://localhost:9826/customs-notifications-receiver-stub/counts \
-      -H 'accept: application/json' \
-      -H 'content-type: application/json' \
-      
 # `DELETE` endpoint for clearing all stored notifications.
 
 ## HTTP return codes

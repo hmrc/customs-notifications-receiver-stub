@@ -2,7 +2,6 @@
 
 GET           /customs-notifications-receiver-stub/admin/metrics                  @com.kenshoo.play.metrics.MetricsController.metrics
 GET           /customs-notifications-receiver-stub/count/:csid                    uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.countNotificationByCsId(csid)
-GET           /customs-notifications-receiver-stub/counts                         uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.countNotificationGroupedByCsIdAndConversationId
 
 POST          /customs-notifications-receiver-stub/pushnotifications              uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.post()
 GET           /customs-notifications-receiver-stub/pushnotifications/:csid        uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.retrieveNotificationByCsId(csid)

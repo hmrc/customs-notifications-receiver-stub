@@ -27,7 +27,7 @@ import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
 import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
-import uk.gov.hmrc.customs.notification.receiver.services.PersistenceService
+import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 import uk.gov.hmrc.play.test.UnitSpec
 import util.TestData._
 
@@ -38,7 +38,7 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
   implicit val timeout = Timeout(5 seconds)
 
   trait Setup {
-    val mockPersistenceService: PersistenceService = mock[PersistenceService]
+    val mockPersistenceService: NotificationRepo = mock[NotificationRepo]
     val mockHeaderValidationAction: HeaderValidationAction = mock[HeaderValidationAction]
     val mockLogger: CdsLogger = mock[CdsLogger]
     lazy val testController: CustomsNotificationReceiverController = new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger), mockPersistenceService)
