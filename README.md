@@ -162,7 +162,6 @@ Note that you will have to seed Declarant URL and SecurityToken data. This can b
 the one below:
   
     curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
-  
 
 ### License
 
