@@ -26,10 +26,10 @@ import scala.xml._
 
 object TestData {
 
-  val CsidOne: UUID = UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232")
-  val CsidTwo: UUID = UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239")
-  val ConversationIdOne: UUID = UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232")
-  val ConversationIdTwo: UUID = UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239")
+  val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
+  val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
+  val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
+  val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
   val HeaderOne: (String, String) = "h1" -> "v1"
   val HeaderTwo: (String, String) = "h2" -> "v2"
   val XmlPayload : NodeSeq = <stuff><moreXml>Stuff</moreXml></stuff>

@@ -55,7 +55,7 @@ class CustomsNotificationReceiverControllerSpec
     "In happy path" should {
 
       "return empty list for a client subscription Id that has no notifications" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -75,7 +75,7 @@ class CustomsNotificationReceiverControllerSpec
         awaitValidPost(CsidOne, ConversationIdOne)
         awaitValidPost(CsidTwo, ConversationIdTwo)
 
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne)).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + CsidOne)).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -84,7 +84,7 @@ class CustomsNotificationReceiverControllerSpec
           notificationRequest(CsidOne, ConversationIdOne)
         )
 
-        val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidTwo)).get
+        val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + CsidTwo)).get
 
         status(eventualResult2) mustBe OK
         contentType(eventualResult2) mustBe Some("application/json")
@@ -92,18 +92,58 @@ class CustomsNotificationReceiverControllerSpec
           notificationRequest(CsidTwo, ConversationIdTwo)
         )
 
-        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/" + CsidOne)).get
+        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/csid/" + CsidOne)).get
 
         status(eventualResult3) mustBe OK
         contentType(eventualResult3) mustBe Some("application/json")
         contentAsJson(eventualResult3) mustBe Json.parse("""{"count": "2"}""")
 
-        val eventualResult4: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/" + CsidTwo)).get
+        val eventualResult4: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/csid/" + CsidTwo)).get
 
         status(eventualResult4) mustBe OK
         contentType(eventualResult4) mustBe Some("application/json")
         contentAsJson(eventualResult4) mustBe Json.parse("""{"count": "1"}""")
 
+        val eventualResult5: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/totalcount")).get
+
+        status(eventualResult5) mustBe OK
+        contentType(eventualResult5) mustBe Some("application/json")
+        contentAsJson(eventualResult5) mustBe Json.parse("""{"count": "3"}""")
+      }
+
+      "return all received requests for a conversationId" in {
+        awaitValidPost(CsidOne, ConversationIdOne)
+        awaitValidPost(CsidOne, ConversationIdOne)
+        awaitValidPost(CsidTwo, ConversationIdTwo)
+
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/conversationid/" + ConversationIdOne)).get
+
+        status(eventualResult) mustBe OK
+        contentType(eventualResult) mustBe Some("application/json")
+        contentAsJson(eventualResult) mustBe notificationsResultJson(
+          notificationRequest(CsidOne, ConversationIdOne),
+          notificationRequest(CsidOne, ConversationIdOne)
+        )
+
+        val eventualResult2: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/conversationid/" + ConversationIdTwo)).get
+
+        status(eventualResult2) mustBe OK
+        contentType(eventualResult2) mustBe Some("application/json")
+        contentAsJson(eventualResult2) mustBe notificationsResultJson(
+          notificationRequest(CsidTwo, ConversationIdTwo)
+        )
+
+        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/conversationid/" + ConversationIdOne)).get
+
+        status(eventualResult3) mustBe OK
+        contentType(eventualResult3) mustBe Some("application/json")
+        contentAsJson(eventualResult3) mustBe Json.parse("""{"count": "2"}""")
+
+        val eventualResult4: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/conversationid/" + ConversationIdTwo)).get
+
+        status(eventualResult4) mustBe OK
+        contentType(eventualResult4) mustBe Some("application/json")
+        contentAsJson(eventualResult4) mustBe Json.parse("""{"count": "1"}""")
       }
 
       "return NoContent when DELETE sent to pushNotifications endpoint" in {
@@ -122,7 +162,7 @@ class CustomsNotificationReceiverControllerSpec
           awaitValidPost(CsidOne, ConversationIdOne)
           awaitValidPost(CsidOne, ConversationIdOne)
 
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne)).get
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + CsidOne)).get
 
         status(eventualResult) mustBe OK
         contentType(eventualResult) mustBe Some("application/json")
@@ -140,7 +180,7 @@ class CustomsNotificationReceiverControllerSpec
 
         status(eventualResult2) mustBe NO_CONTENT
 
-        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
+        val eventualResult3: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + CsidOne).withHeaders(AUTHORIZATION -> ("Basic " + CsidOne))).get
 
         status(eventualResult3) mustBe OK
         contentType(eventualResult3) mustBe Some("application/json")
@@ -177,7 +217,7 @@ class CustomsNotificationReceiverControllerSpec
       }
 
       "return 400 for GET of notifications when csid is invalid" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/1")
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/1")
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.JSON
           )).get
@@ -187,7 +227,7 @@ class CustomsNotificationReceiverControllerSpec
       }
 
       "return 400 for GET of count by csid when csid is invalid" in {
-        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/count/1")
+        val eventualResult: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/csid/1")
           .withHeaders(
             CONTENT_TYPE -> MimeTypes.JSON
           )).get

@@ -108,6 +108,16 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       await(repository.notificationsByCsId(CsidTwo)) shouldBe Seq(NotificationRequestTwo)
     }
 
+    "find by ConversationId" in {
+      await(repository.persist(NotificationRequestOne))
+      await(repository.persist(NotificationRequestOneTwo))
+      await(repository.persist(NotificationRequestTwo))
+
+      await(repository.notificationsByConversationId(ConversationIdOne)) shouldBe Seq(NotificationRequestOne, NotificationRequestOneTwo)
+      logVerifier("debug", "fetching clientNotification(s) with conversationId: eaca01f9-ec3b-4ede-b263-61b626dde232")
+      await(repository.notificationsByConversationId(ConversationIdTwo)) shouldBe Seq(NotificationRequestTwo)
+    }
+
     "count by CsId" in {
       await(repository.persist(NotificationRequestOne))
       await(repository.persist(NotificationRequestOne))
@@ -116,6 +126,25 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       await(repository.notificationCountByCsId(CsidOne)) shouldBe 2
       logVerifier("debug", "counting clientNotification(s) with csid: ffff01f9-ec3b-4ede-b263-61b626dde232")
       await(repository.notificationCountByCsId(CsidTwo)) shouldBe 1
+    }
+
+    "count by conversationId" in {
+      await(repository.persist(NotificationRequestOne))
+      await(repository.persist(NotificationRequestOne))
+      await(repository.persist(NotificationRequestTwo))
+
+      await(repository.notificationCountByConversationId(ConversationIdOne)) shouldBe 2
+      logVerifier("debug", "counting clientNotification(s) with conversationId: eaca01f9-ec3b-4ede-b263-61b626dde232")
+      await(repository.notificationCountByConversationId(ConversationIdTwo)) shouldBe 1
+    }
+
+    "count all notifications" in {
+      await(repository.persist(NotificationRequestOne))
+      await(repository.persist(NotificationRequestOne))
+      await(repository.persist(NotificationRequestTwo))
+
+      await(repository.notificationCount) shouldBe 3
+      logVerifier("debug", "counting all clientNotifications")
     }
 
     "delete" in {

@@ -17,15 +17,15 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
-
 import javax.inject.{Inject, Singleton}
+
 import play.api.http.HeaderNames
 import play.api.mvc.{ActionRefiner, Request, Result}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorContentTypeHeaderInvalid, ErrorGenericBadRequest}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames, ExtractedHeadersRequest}
 
 import scala.concurrent.Future
 import scala.util.matching.Regex
@@ -42,22 +42,22 @@ class HeaderValidationAction @Inject()(logger: CdsLogger) extends ActionRefiner[
         _ <- validateAndExtract(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid).right
         conversationId <- validateAndExtract(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
         authHeader <- validateAndExtract(r, HeaderNames.AUTHORIZATION, uuidRegex, ErrorGenericBadRequest).right
-      } yield ExtractedHeadersRequest(UUID.fromString(authHeader), UUID.fromString(conversationId), authHeader,  r)
+      } yield ExtractedHeadersRequest(CsId(UUID.fromString(authHeader)), ConversationId(UUID.fromString(conversationId)), authHeader,  r)
     }
   }
 
   private def validateAndExtract[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
     val mayBeHeaderValue = request.headers.get(headerName)
     mayBeHeaderValue.fold[Either[Result, String]]{
-      logger.error(s"Unable to retrieve header:${headerName} from the request")
+      logger.error(s"Unable to retrieve header:$headerName from the request")
       Left(errorResponse.XmlResult)
     }{ headerValue: String =>
       val matcher = regex.pattern.matcher(headerValue)
       if (matcher.find()) {
-        logger.debug(s"header:${headerName} retrieved and validated, value was: ${headerValue}")
+        logger.debug(s"header:$headerName retrieved and validated, value was: $headerValue")
         Right(headerValue)
       } else {
-        logger.error(s"header:${headerName} was invalid value:${headerValue}")
+        logger.error(s"header:$headerName was invalid value:$headerValue")
         Left(errorResponse.XmlResult)
       }
     }
