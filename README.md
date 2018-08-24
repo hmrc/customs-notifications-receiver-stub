@@ -78,12 +78,17 @@ The Response body will contain the payload that was saved eg:
 }     
 ```
       
-# `GET` endpoint for retrieving all notifications for a `CsId`  
+# `GET` endpoints for retrieving all notifications for a `CsId` and ConversationId 
 
 ## Request
 
     curl -X GET \
-      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/csid/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      -H 'accept: application/json' \
+      -H 'content-type: application/json' \
+
+    curl -X GET \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/conversationid/ffff01f9-ec3b-4ede-b263-61b626dde232 \
       -H 'accept: application/json' \
       -H 'content-type: application/json' \
       
@@ -135,9 +140,27 @@ The Response body will contain the payload that was saved eg:
 ## Request
 
     curl -X GET \
-      http://localhost:9826/customs-notifications-receiver-stub/count/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/count/csid/ffff01f9-ec3b-4ede-b263-61b626dde232 \
       -H 'accept: application/json' \
       -H 'content-type: application/json' \
+
+# `GET` endpoint for getting counts of notifications for a ConversationId  
+
+## Request
+
+    curl -X GET \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/count/conversationid/ffff01f9-ec3b-4ede-b263-61b626dde232 \
+      -H 'accept: application/json' \
+      -H 'content-type: application/json' \
+      
+# `GET` endpoint for getting counts of all notifications  
+
+## Request
+
+    curl -X GET \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/totalcount \
+      -H 'accept: application/json' \
+      -H 'content-type: application/json' \      
 
 # `DELETE` endpoint for clearing all stored notifications.
 

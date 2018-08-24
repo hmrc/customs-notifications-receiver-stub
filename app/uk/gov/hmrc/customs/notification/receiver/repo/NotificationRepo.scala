@@ -17,9 +17,8 @@
 package uk.gov.hmrc.customs.notification.receiver.repo
 
 import com.google.inject.ImplementedBy
-import uk.gov.hmrc.customs.notification.receiver.models.{CsId, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
 
-import scala.collection.immutable.Seq
 import scala.concurrent.Future
 
 @ImplementedBy(classOf[MongoNotificationsRepo])
@@ -29,7 +28,13 @@ trait NotificationRepo {
 
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]]
 
+  def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]]
+
   def notificationCountByCsId(csid: CsId): Future[Int]
+
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Int]
+
+  def notificationCount: Future[Int]
 
   def clearAll(): Future[Unit]
 }

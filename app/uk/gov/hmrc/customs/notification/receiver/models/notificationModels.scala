@@ -16,12 +16,40 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import play.api.libs.json.{Format, Json}
+import java.util.UUID
+
+import play.api.libs.json._
 
 case class Header(name: String, value: String)
 
 object Header{
   implicit val formats: Format[Header] = Json.format[Header]
+}
+
+case class ConversationId(id: UUID) extends AnyVal {
+  override def toString: String = id.toString
+}
+object ConversationId {
+  implicit val conversationIdJF = new Format[ConversationId] {
+    def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
+    def reads(json: JsValue): JsResult[ConversationId] = json match {
+      case JsNull => JsError()
+      case _ => JsSuccess(ConversationId(json.as[UUID]))
+    }
+  }
+}
+
+case class CsId(id: UUID) extends AnyVal {
+  override def toString: String = id.toString
+}
+object CsId {
+  implicit val clientSubscriptionIdJF = new Format[CsId] {
+    def writes(csid: CsId): JsString = JsString(csid.id.toString)
+    def reads(json: JsValue): JsResult[CsId] = json match {
+      case JsNull => JsError()
+      case _ => JsSuccess(CsId(json.as[UUID]))
+    }
+  }
 }
 
 case class NotificationRequest(

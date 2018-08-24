@@ -16,36 +16,43 @@
 
 package integration.repo
 
-import java.util.UUID
 import javax.inject.Singleton
 
 import uk.gov.hmrc.customs.notification.receiver.models._
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 
-import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
 class InMemoryPersistenceService extends NotificationRepo {
 
-  private val notificationsByCsidMap = scala.collection.mutable.Map[UUID, Seq[NotificationRequest]]()
+  private var notifications = new scala.collection.mutable.ListBuffer[NotificationRequest]
 
   def persist(notificationRequest: NotificationRequest): Future[Boolean] = {
-    notificationsByCsidMap.get(notificationRequest.csid).fold[Unit](notificationsByCsidMap.put(notificationRequest.csid, Seq(notificationRequest))) { notifications: Seq[NotificationRequest] =>
-      val newList = notifications :+ notificationRequest
-      notificationsByCsidMap.put(notificationRequest.csid, newList)
-    }
+    notifications += notificationRequest
     Future.successful(true)
   }
 
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] = {
-    Future.successful(
-      notificationsByCsidMap.get(csid).fold[Seq[NotificationRequest]](Seq.empty)(ns => ns)
-    )
+    Future.successful {
+      notifications.filter(n => n.csid == csid)
+    }
   }
 
-  def clearAll(): Future[Unit] = Future.successful(notificationsByCsidMap.clear)
+  override def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
+    Future.successful {
+      notifications.filter(n => n.conversationId == conversationId)
+    }
+  }
+
+  def clearAll(): Future[Unit] = Future.successful{
+    notifications.clear()
+  }
 
   def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)
+
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] = notificationsByConversationId(conversationId).map(ns => ns.size)
+
+  def notificationCount: Future[Int] = Future.successful(notifications.size)
 }

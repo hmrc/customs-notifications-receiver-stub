@@ -25,11 +25,10 @@ import play.api.mvc._
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
-import uk.gov.hmrc.customs.notification.receiver.models.{Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-import scala.collection.immutable.Seq
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -56,12 +55,29 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
+
     logger.debug(s"Trying to get Notifications by CsId:$csid\nheaders=\n${request.headers.toSimpleMap}")
     Try(UUID.fromString(csid)) match {
-      case Success(csidUuid) =>
-        val eventuallyNotifications: Future[Seq[NotificationRequest]] = persistenceService.notificationsByCsId(csidUuid)
+      case Success(uuid) =>
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = persistenceService.notificationsByCsId(CsId(uuid))
         eventuallyNotifications.map{seqNotifications =>
-          logger.debug(s"Found Notifications for Csid $csid\n$eventuallyNotifications")
+          logger.debug(s"Found Notifications for Csid $csid\n$seqNotifications")
+          Ok(Json.toJson(seqNotifications))
+        }
+      case Failure(e) =>
+        logger.error("Bad request", e)
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
+  }
+
+  def retrieveNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { request =>
+
+    logger.debug(s"Trying to get Notifications by ConversationId:$conversationId\nheaders=\n${request.headers.toSimpleMap}")
+    Try(UUID.fromString(conversationId)) match {
+      case Success(uuid) =>
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = persistenceService.notificationsByConversationId(ConversationId(uuid))
+        eventuallyNotifications.map{seqNotifications =>
+          logger.debug(s"Found Notifications for ConversationId $conversationId\n$seqNotifications")
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
@@ -73,7 +89,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   def countNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
-        persistenceService.notificationCountByCsId(csidUuid).map{count =>
+        persistenceService.notificationCountByCsId(CsId(csidUuid)).map{count =>
           logger.debug(s"About to get counts by CsId:$csid count=$count")
           Ok(Json.parse(s"""{"count": "$count"}"""))
         }
@@ -83,9 +99,30 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
     }
   }
 
+  def countNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { _ =>
+    Try(UUID.fromString(conversationId)) match {
+      case Success(csidUuid) =>
+        persistenceService.notificationCountByConversationId(ConversationId(csidUuid)).map{count =>
+          logger.debug(s"About to get counts by conversationId:$conversationId count=$count")
+          Ok(Json.parse(s"""{"count": "$count"}"""))
+        }
+      case Failure(e) =>
+        logger.error(s"Invalid csid UUID $conversationId")
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
+  }
+
+  def countAllNotifications: Action[AnyContent] = Action.async { _ =>
+    persistenceService.notificationCount.map{ count =>
+      logger.debug(s"About to get count of all notifications")
+      Ok(Json.parse(s"""{"count": "$count"}"""))
+    }
+  }
+
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>
     logger.debug("Clearing down Notifications")
     persistenceService.clearAll()
     Future.successful(NoContent)
   }
+
 }
