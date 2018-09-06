@@ -184,7 +184,55 @@ The Response body will contain the payload that was saved eg:
 Note that you will have to seed Declarant URL and SecurityToken data. This can be done by using a curl statement similar to 
 the one below:
   
-    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "aaaa01f9-ec3b-4ede-b263-61b626dde232" } }'
+    curl -v -X PUT "http://localhost:9650/field/application/<YOUR_CLIENT_ID_HERE>/context/<YOUR_APP_CONTEXT_HERE>/version/<YOUR_VERSION_HERE>" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "securityToken" } }'
+
+This will generate a MongoDb record in the `notifications` collection in the `api-subscription-fields` database, eg:
+
+```json
+{
+    "_id" : ObjectId("5b8fab9b9bb4d54201571201"),
+    "apiContext" : "customs/inventory-linking-imports",
+    "apiVersion" : "1.0",
+    "clientId" : "6372609a-f550-11e7-8c3f-9a214cf093aa",
+    "fields" : {
+        "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications",
+        "securityToken" : "securityToken"
+    },
+    "fieldsId" : "f369eb7e-e6bf-42c6-9902-3c70705684e8"
+}
+```
+
+Note you will then have to update the `securityToken` field in the database with `fieldsId` value (this is the `CsId`).
+This is because the `customs-notifications-receiver-stub` reads the authorisation header in order to extract the `CsId`. So after 
+doing this the above record will look like:
+
+```json
+{
+    "_id" : ObjectId("5b8fab9b9bb4d54201571201"),
+    "apiContext" : "customs/inventory-linking-imports",
+    "apiVersion" : "1.0",
+    "clientId" : "6372609a-f550-11e7-8c3f-9a214cf093aa",
+    "fields" : {
+        "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications",
+        "securityToken" : "f369eb7e-e6bf-42c6-9902-3c70705684e8"
+    },
+    "fieldsId" : "f369eb7e-e6bf-42c6-9902-3c70705684e8"
+}
+```
+
+For concrete examples for all Customs services please see below section.
+
+## Concrete Examples of Seeding `api-subscription-fields` Declarant data for Customs services
+  
+Note you will have to pay attention to the version of the API you are calling - not all versions are covered below.  
+
+| Service                             | CURL for `api-subscription-fields` data seeding                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `customs-declarations`              | ```curl -v -X PUT "http://localhost:9650/field/application/6372609a-f550-11e7-8c3f-9a214cf093ad/context/customs%2Fdeclarations/version/2.0" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "securityToken" } }'``` |
+| `customs-inventory-linking-exports` | ```curl -v -X PUT "http://localhost:9650/field/application/6372609a-f550-11e7-8c3f-9a214cf093ae/context/customs%2Finventory-linking%2Fexports/version/1.0" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "securityToken" } }'``` |
+| `customs-inventory-linking-imports` | ```curl -v -X PUT "http://localhost:9650/field/application/6372609a-f550-11e7-8c3f-9a214cf093aa/context/customs%2Finventory-linking-imports/version/1.0" -H "Cache-Control: no-cache" -H "Content-Type: application/json" -d '{ "fields" : { "callbackUrl" : "http://localhost:9826/customs-notifications-receiver-stub/pushnotifications", "securityToken" : "securityToken" } }'``` |
+  
+Don't forget that you will have to update the `securityToken` field in the database with `fieldsId` value as mentioned in the above section.  
 
 
 ### License
