@@ -108,7 +108,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-val compileDependencies = Seq(xmlResolver, customsApiCommon, playReactiveMongo)
+val compileDependencies = Seq(customsApiCommon, playReactiveMongo)
 
 val testDependencies = Seq(hmrcTest, scalaTest, pegDown,
   scalaTestPlusPlay, wireMock, mockito,  customsApiCommonTests, reactiveMongoTest)
