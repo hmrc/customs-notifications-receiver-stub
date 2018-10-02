@@ -52,6 +52,7 @@ lazy val microservice = (project in file("."))
   )
   .settings(majorVersion := 1)
 
+
 def onPackageName(rootPackage: String): String => Boolean = {
   testName => testName startsWith rootPackage
 }
