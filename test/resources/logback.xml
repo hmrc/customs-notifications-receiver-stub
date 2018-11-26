@@ -14,6 +14,8 @@
         </encoder>
     </appender>
 
+    <logger name="customs-notifications-receiver-stub" level="DEBUG"/>
+
     <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE_JSON" />
