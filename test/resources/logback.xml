@@ -1,4 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <appender name="FILE_JSON" class="ch.qos.logback.core.FileAppender">
+        <file>logs/customs-notifications-receiver-stub-json.log</file>
+        <encoder class="uk.gov.hmrc.play.logging.JsonEncoder"/>
+    </appender>
 
     <appender name="STDOUT"
               class="ch.qos.logback.core.ConsoleAppender">
@@ -11,6 +16,7 @@
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE_JSON" />
     </root>
 
 </configuration>
