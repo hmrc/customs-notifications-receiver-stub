@@ -18,7 +18,6 @@ package uk.gov.hmrc.customs.notification.receiver.repo
 
 
 import javax.inject.{Inject, Singleton}
-
 import play.api.libs.json._
 import reactivemongo.api.Cursor
 import reactivemongo.api.indexes.{Index, IndexType}
@@ -43,7 +42,7 @@ class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
     domainFormat = NotificationRequestRecord.format
   ) with NotificationRepo {
 
-  private implicit val format = NotificationRequestRecord.format
+  private implicit val format: Format[NotificationRequestRecord] = NotificationRequestRecord.format
 
   override def indexes: Seq[Index] = Seq(
     Index(
@@ -76,7 +75,7 @@ class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
     logger.debug(s"fetching clientNotification(s) with csid: ${csid.toString}")
     val selector = Json.obj("notification.csid" -> csid)
     val sortOrder = Json.obj("timeReceived" -> 1)
-    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
+    val cursor = collection.find(selector, None).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
     cursor.map(ns => ns.map(record => record.notification))
   }
 
@@ -85,26 +84,26 @@ class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
     logger.debug(s"fetching clientNotification(s) with conversationId: ${conversationId.toString}")
     val selector = Json.obj("notification.conversationId" -> conversationId)
     val sortOrder = Json.obj("timeReceived" -> 1)
-    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
+    val cursor = collection.find(selector, None).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
     cursor.map(ns => ns.map(record => record.notification))
   }
 
-  def notificationCountByCsId(csid: CsId): Future[Int] =
+  def notificationCountByCsId(csid: CsId): Future[Long] =
   {
     logger.debug(s"counting clientNotification(s) with csid: ${csid.toString}")
-    collection.count(Some(Json.obj("notification.csid" -> csid)))
+    collection.count(Some(Json.obj("notification.csid" -> csid)), None, 0 , None, mongo().connection.options.readConcern)
   }
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] =
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Long] =
   {
     logger.debug(s"counting clientNotification(s) with conversationId: ${conversationId.toString}")
-    collection.count(Some(Json.obj("notification.conversationId" -> conversationId)))
+    collection.count(Some(Json.obj("notification.conversationId" -> conversationId)), None, 0 , None, mongo().connection.options.readConcern)
   }
 
   def notificationCount: Future[Int] =
   {
     logger.debug("counting all clientNotifications")
-    collection.count()
+    count(Json.obj())
   }
 
   def clearAll(): Future[Unit] = {

@@ -22,10 +22,8 @@ import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import play.api.libs.json.Json
-import reactivemongo.api.{Cursor, DB}
-import reactivemongo.play.json.JsObjectDocumentWriter
+import reactivemongo.api.DB
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.models.{CsId, NotificationRequestRecord}
 import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.test.UnitSpec
@@ -50,19 +48,15 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
   private val repository = new MongoNotificationsRepo(mongoDbProvider, mockErrorHandler, mockLogger)
 
   override def beforeEach() {
-    await(repository.drop)
+    dropTestCollection("notifications")
   }
 
   override def afterAll() {
-    await(repository.drop)
+    dropTestCollection("notifications")
   }
 
   private def collectionSize: Int = {
-    await(repository.collection.count())
-  }
-
-  private def selector(clientSubscriptionId: CsId) = {
-    Json.obj("notification.csid" -> clientSubscriptionId)
+    await(repository.count(Json.obj()))
   }
 
   private def logVerifier(logLevel: String, logText: String) = {
@@ -81,7 +75,7 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       logVerifier("debug", logMsg)
       saveResult shouldBe true
       collectionSize shouldBe 1
-      val findResult = await(repository.collection.find(selector(CsidOne)).one[NotificationRequestRecord]).get
+      val findResult = await(repository.find("notification.csid" -> CsidOne).head)
       findResult.id should not be None
       findResult.timeReceived should not be None
       Seconds.secondsBetween(DateTime.now(DateTimeZone.UTC), findResult.timeReceived.get).getSeconds should be < 3
@@ -93,7 +87,7 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       await(repository.persist(NotificationRequestOne))
 
       collectionSize shouldBe 2
-      val clientNotifications = await(repository.collection.find(selector(CsidOne)).cursor[NotificationRequestRecord]().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]()))
+      val clientNotifications = await(repository.find("notification.csid" -> CsidOne))
       clientNotifications.size shouldBe 2
       clientNotifications.head.id should not be None
     }
