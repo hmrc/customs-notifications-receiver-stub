@@ -29,13 +29,13 @@ import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, N
 import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.collection.immutable.Seq
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
                                        errorHandler: NotificationRepositoryErrorHandler,
                                        logger: CdsLogger)
+                                      (implicit ec: ExecutionContext)
   extends ReactiveRepository[NotificationRequestRecord, BSONObjectID](
     collectionName = "notifications",
     mongo = mongoDbProvider.mongo,

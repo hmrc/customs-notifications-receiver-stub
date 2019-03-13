@@ -21,6 +21,7 @@ import controllers.Default
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, Matchers}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.test.Helpers.{AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import play.api.test.{FakeRequest, Helpers}
 import play.mvc.Http.MimeTypes

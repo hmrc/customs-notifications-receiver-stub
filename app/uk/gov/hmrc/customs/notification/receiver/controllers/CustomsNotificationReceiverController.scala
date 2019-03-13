@@ -17,8 +17,8 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
-import javax.inject.Singleton
 
+import javax.inject.Singleton
 import com.google.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -29,15 +29,15 @@ import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, H
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
                                                       headerValidationAction: HeaderValidationAction,
-                                                      persistenceService: NotificationRepo) extends BaseController {
+                                                      persistenceService: NotificationRepo)
+                                                     (implicit ec: ExecutionContext) extends BaseController {
 
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
     extractedHeadersRequest.body.asXml match {
