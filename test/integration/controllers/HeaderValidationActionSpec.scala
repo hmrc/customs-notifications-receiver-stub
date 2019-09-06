@@ -16,6 +16,7 @@
 
 package integration.controllers
 
+import com.google.inject.Inject
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{FakeRequest, Helpers}

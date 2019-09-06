@@ -21,8 +21,8 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
+import play.api.test.Helpers
 import reactivemongo.api.DB
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
@@ -36,6 +36,8 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
   with BeforeAndAfterEach
   with MockitoSugar
   with MongoSpecSupport  { self =>
+
+  private implicit val ec = Helpers.stubControllerComponents().executionContext
 
   private val mockLogger = mock[CdsLogger]
   private val mockErrorHandler = mock[NotificationRepositoryErrorHandler]
