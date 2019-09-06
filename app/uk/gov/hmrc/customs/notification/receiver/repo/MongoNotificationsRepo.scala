@@ -88,18 +88,16 @@ class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
     cursor.map(ns => ns.map(record => record.notification))
   }
 
-  def notificationCountByCsId(csid: CsId): Future[Int] =
+  def notificationCountByCsId(csid: CsId): Future[Long] =
   {
     logger.debug(s"counting clientNotification(s) with csid: ${csid.toString}")
-    val selector = Json.obj("notification.csid" -> csid)
-    count(selector)
+    collection.count(Some(Json.obj("notification.csid" -> csid)), None, 0 , None, mongo().connection.options.readConcern)
   }
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] =
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Long] =
   {
     logger.debug(s"counting clientNotification(s) with conversationId: ${conversationId.toString}")
-    val selector = Json.obj("notification.conversationId" -> conversationId)
-    count(selector)
+    collection.count(Some(Json.obj("notification.conversationId" -> conversationId)), None, 0 , None, mongo().connection.options.readConcern)
   }
 
   def notificationCount: Future[Int] =

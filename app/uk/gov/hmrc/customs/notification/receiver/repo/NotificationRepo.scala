@@ -30,9 +30,9 @@ trait NotificationRepo {
 
   def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]]
 
-  def notificationCountByCsId(csid: CsId): Future[Int]
+  def notificationCountByCsId(csid: CsId): Future[Long]
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Int]
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Long]
 
   def notificationCount: Future[Int]
 

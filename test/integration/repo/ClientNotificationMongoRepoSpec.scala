@@ -19,27 +19,25 @@ package integration.repo
 import org.joda.time.{DateTime, DateTimeZone, Seconds}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.Json
 import reactivemongo.api.DB
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.test.UnitSpec
-import unit.logging.StubCdsLogger
 import util.MockitoPassByNameHelper.PassByNameVerifier
 import util.TestData._
 
-import scala.concurrent.ExecutionContext
-
-class ClientNotificationMongoRepoSpec (implicit ec: ExecutionContext) extends UnitSpec
+class ClientNotificationMongoRepoSpec extends UnitSpec
   with BeforeAndAfterAll
   with BeforeAndAfterEach
   with MockitoSugar
   with MongoSpecSupport  { self =>
 
-  private val mockLogger = StubCdsLogger()
+  private val mockLogger = mock[CdsLogger]
   private val mockErrorHandler = mock[NotificationRepositoryErrorHandler]
 
   private val mongoDbProvider = new MongoDbProvider {

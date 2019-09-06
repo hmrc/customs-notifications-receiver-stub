@@ -16,7 +16,7 @@
 
 package integration.controllers
 
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
@@ -25,14 +25,13 @@ import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
 import uk.gov.hmrc.play.test.UnitSpec
-import unit.logging.StubCdsLogger
 import util.TestData
 import util.TestData.ConversationIdOne
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
 
   private implicit val ec = Helpers.stubControllerComponents().executionContext
-  val mockLogger = StubCdsLogger()
+  val mockLogger = mock[CdsLogger]
   val headerValidationAction = new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents())
 
   "in happy path" should {

@@ -40,7 +40,13 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
                                                       cc: ControllerComponents)
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
+  def post(): Action[AnyContent] =
+
+    Action andThen headerValidationAction async
+      {
+
+      implicit extractedHeadersRequest =>
+
     extractedHeadersRequest.body.asXml match {
       case Some(xmlPayload) =>
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
