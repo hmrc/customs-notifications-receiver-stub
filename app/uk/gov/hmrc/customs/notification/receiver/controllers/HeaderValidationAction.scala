@@ -17,21 +17,23 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
-import javax.inject.{Inject, Singleton}
 
+import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
-import play.api.mvc.{ActionRefiner, Request, Result}
+import play.api.mvc.{ActionRefiner, ControllerComponents, Request, Result}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.{ErrorContentTypeHeaderInvalid, ErrorGenericBadRequest}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames, ExtractedHeadersRequest}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
 @Singleton
-class HeaderValidationAction @Inject()(logger: CdsLogger) extends ActionRefiner[Request, ExtractedHeadersRequest] {
+class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponents)(implicit ec: ExecutionContext) extends ActionRefiner[Request, ExtractedHeadersRequest] {
+
+  override def executionContext: ExecutionContext = cc.executionContext
 
   private val uuidRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$".r
   private val xmlRegex = s"^${MimeTypes.XML}.*".r

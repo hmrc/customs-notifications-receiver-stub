@@ -49,6 +49,10 @@ object TestData {
       |  "authHeaderToken": "$csid",
       |  "outboundCallHeaders": [
       |    {
+      |      "name": "Host",
+      |      "value": "localhost"
+      |    },
+      |    {
       |      "name": "User-Agent",
       |      "value": "Customs Declaration Service"
       |    },

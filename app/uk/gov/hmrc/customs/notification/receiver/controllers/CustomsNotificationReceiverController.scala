@@ -21,13 +21,13 @@ import java.util.UUID
 import javax.inject.Singleton
 import com.google.inject.Inject
 import play.api.libs.json.Json
-import play.api.mvc._
+import play.api.mvc.{Action, AnyContent, BodyParser, ControllerComponents}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -36,8 +36,9 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
                                                       headerValidationAction: HeaderValidationAction,
-                                                      persistenceService: NotificationRepo)
-                                                     (implicit ec: ExecutionContext) extends BaseController {
+                                                      persistenceService: NotificationRepo,
+                                                      cc: ControllerComponents)
+                                                     (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
     extractedHeadersRequest.body.asXml match {

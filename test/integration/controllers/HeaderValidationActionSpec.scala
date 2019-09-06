@@ -16,22 +16,24 @@
 
 package integration.controllers
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.FakeRequest
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorContentTypeHeaderInvalid
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
 import uk.gov.hmrc.play.test.UnitSpec
+import unit.logging.StubCdsLogger
 import util.TestData
 import util.TestData.ConversationIdOne
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
 
-  val mockLogger = mock[CdsLogger]
-  val headerValidationAction = new HeaderValidationAction(mockLogger)
+  private implicit val ec = Helpers.stubControllerComponents().executionContext
+  val mockLogger = StubCdsLogger()
+  val headerValidationAction = new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents())
 
   "in happy path" should {
     "return 415 when CONTENT_TYPE header is invalid" in {

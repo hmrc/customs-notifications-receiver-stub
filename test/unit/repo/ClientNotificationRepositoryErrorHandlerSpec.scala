@@ -17,16 +17,17 @@
 package unit.repo
 
 import org.mockito.ArgumentMatchers.{eq => meq}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import reactivemongo.api.commands.{DefaultWriteResult, WriteConcernError, WriteError}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequestRecord
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepositoryErrorHandler
 import uk.gov.hmrc.play.test.UnitSpec
+import unit.logging.StubCdsLogger
 
 class ClientNotificationRepositoryErrorHandlerSpec extends UnitSpec with MockitoSugar {
 
-  private val mockNotificationLogger = mock[CdsLogger]
+  private val mockNotificationLogger = StubCdsLogger()
   private val errorHandler = new NotificationRepositoryErrorHandler(mockNotificationLogger)
   private val notification = mock[NotificationRequestRecord]
 
