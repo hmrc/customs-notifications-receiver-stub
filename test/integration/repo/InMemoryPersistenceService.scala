@@ -50,9 +50,9 @@ class InMemoryPersistenceService extends NotificationRepo {
     notifications.clear()
   }
 
-  def notificationCountByCsId(csid: CsId): Future[Long] = notificationsByCsId(csid).map(ns => ns.size)
+  def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Long] = notificationsByConversationId(conversationId).map(ns => ns.size)
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] = notificationsByConversationId(conversationId).map(ns => ns.size)
 
   def notificationCount: Future[Int] = Future.successful(notifications.size)
 }
