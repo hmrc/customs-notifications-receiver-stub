@@ -21,12 +21,12 @@ import integration.repo.InMemoryPersistenceService
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test._
+import play.api.{Application, Mode}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
@@ -48,6 +48,7 @@ class CustomsNotificationReceiverControllerSpec
   private class PersistenceModule() extends AbstractModule {
     def configure() {
       bind(classOf[NotificationRepo]).to(classOf[InMemoryPersistenceService])
+      bind(classOf[Mode]).toInstance(Mode.Test)
     }
   }
 
@@ -251,14 +252,14 @@ class CustomsNotificationReceiverControllerSpec
         val x = contentAsString(eventualResult)
         string2xml(x) mustBe UnsupportedMediaTypeXml
       }
-
     }
   }
 
   private def awaitValidPost(csid: CsId, conversationId: ConversationId): Result =  await(validPost(csid, conversationId))
 
   private def validPost(csid: CsId, conversationId: ConversationId): Future[Result] =
-    route(app, FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
+    route(app,
+      FakeRequest(POST, "/customs-notifications-receiver-stub/pushnotifications")
       .withXmlBody(XmlPayload)
       .withHeaders(
         AUTHORIZATION -> csid.toString,

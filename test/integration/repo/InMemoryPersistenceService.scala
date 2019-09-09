@@ -17,15 +17,16 @@
 package integration.repo
 
 import javax.inject.Singleton
-
+import play.api.test.Helpers
 import uk.gov.hmrc.customs.notification.receiver.models._
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
 
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
 @Singleton
 class InMemoryPersistenceService extends NotificationRepo {
+
+  private implicit val ec = Helpers.stubControllerComponents().executionContext
 
   private var notifications = new scala.collection.mutable.ListBuffer[NotificationRequest]
 
@@ -50,9 +51,9 @@ class InMemoryPersistenceService extends NotificationRepo {
     notifications.clear()
   }
 
-  def notificationCountByCsId(csid: CsId): Future[Long] = notificationsByCsId(csid).map(ns => ns.size)
+  def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Long] = notificationsByConversationId(conversationId).map(ns => ns.size)
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] = notificationsByConversationId(conversationId).map(ns => ns.size)
 
   def notificationCount: Future[Int] = Future.successful(notifications.size)
 }

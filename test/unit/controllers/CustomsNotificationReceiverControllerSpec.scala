@@ -19,9 +19,9 @@ package unit.controllers
 import akka.util.Timeout
 import controllers.Default
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, Matchers}
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.http.Status
 import play.api.test.Helpers.{AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import play.api.test.{FakeRequest, Helpers}
 import play.mvc.Http.MimeTypes
@@ -38,11 +38,14 @@ import scala.language.postfixOps
 class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndAfterEach with MockitoSugar with Matchers {
   implicit val timeout = Timeout(5 seconds)
 
+  private implicit val ec = Helpers.stubControllerComponents().executionContext
+
   trait Setup {
     val mockPersistenceService: NotificationRepo = mock[NotificationRepo]
     val mockHeaderValidationAction: HeaderValidationAction = mock[HeaderValidationAction]
     val mockLogger: CdsLogger = mock[CdsLogger]
-    lazy val testController: CustomsNotificationReceiverController = new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger), mockPersistenceService)
+    lazy val testController: CustomsNotificationReceiverController =
+      new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents()), mockPersistenceService, Helpers.stubControllerComponents())
   }
 
   "CustomsNotificationReceiverController" should {
@@ -60,7 +63,7 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
         CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
       ))
 
-      Helpers.status(result) shouldBe Default.BAD_REQUEST
+      Helpers.status(result) shouldBe Status.BAD_REQUEST
       string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
     }
   }
