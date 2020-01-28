@@ -180,6 +180,41 @@ The Response body will contain the payload that was saved eg:
 
 204 with no body
 
+# `POST` endpoint for returning custom HTTP response codes
+
+    curl -X POST \
+      http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/customresponse/503 \
+      -H 'authorization: Basic aaaa01f9-ec3b-4ede-b263-61b626dde232' \
+      -H 'content-type: application/xml' \
+      -H 'x-conversation-id: xxxx01f9-ec3b-4ede-b263-61b626dde232' \
+      -d '<foo>bar</foo>'
+
+## Request Structure
+
+### HTTP headers
+
+Note we override the use of the `Authorization` header to contain the `CsId` (see below table for details)
+
+| Header              | Mandatory/Optional | Description                                                                 |
+| -------------       | -------------------|---------------------------------------------------------------------------- |
+| `Content-Type`      | M                  |Fixed `application/xml` or `application/xml; charset=UTF-8`                                       |
+| `Authorization`     | M                  |`cccc01f9-ec3b-4ede-b263-61b626dde232` Note this contains the `CsId` which is a UUID  |
+| `X-Conversation-ID` | M                  |This id was passed to Messaging when the declaration was passed onto Messaging earlier. This must be a UUID|
+
+### Body
+The body of the request can contain anything as it is not parsed     
+    
+## Response Body
+      
+The Response body will contain a xml 'errorResponse' element similar to below:
+
+```xml
+<errorResponse>
+      <code>REQUESTED_ERROR</code>
+      <message>Returning HTTP status 503 as requested</message>
+</errorResponse>    
+```
+
 # Seeding `api-subscription-fields` Declarant data
 Note that you will have to seed Declarant URL and SecurityToken data. This can be done by using a curl statement similar to 
 the one below:
