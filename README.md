@@ -201,12 +201,19 @@ Note we override the use of the `Authorization` header to contain the `CsId` (se
 | `Authorization`     | M                  |`cccc01f9-ec3b-4ede-b263-61b626dde232` Note this contains the `CsId` which is a UUID  |
 | `X-Conversation-ID` | M                  |This id was passed to Messaging when the declaration was passed onto Messaging earlier. This must be a UUID|
 
+### URL Path Parameter
+Set the HTTP response code that you want the stub to return as in: (replace '???' with status code required)
+
+    /customs-notifications-receiver-stub/pushnotifications/customresponse/???   
+
 ### Body
 The body of the request can contain anything as it is not parsed     
     
 ## Response Body
       
-The Response body will contain a xml 'errorResponse' element similar to below:
+The Response body will contain:
+- For requested status codes between 300-399 no body is returned, instead a redirect response is returned redirecting the incoming request to the '[post endpoint for receiving notification](#post-endpoint-for-receiving-notification)' endpoint 
+- For all other status codes a xml 'errorResponse' element similar to below:
 
 ```xml
 <errorResponse>
