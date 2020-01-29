@@ -68,12 +68,7 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
       string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
     }
 
-    "return custom HTTP status code as specified in the URL path parameter" in new Setup {
-      withClue("test 301") {
-        val result = testController.customResponse(301).apply(fakeRequestWithHeaders)
-        Helpers.status(result) shouldBe Status.MOVED_PERMANENTLY
-      }
-
+    "return custom HTTP error status code as specified in the URL path parameter" in new Setup {
       withClue("test 403") {
         val result = testController.customResponse(403).apply(fakeRequestWithHeaders)
         Helpers.status(result) shouldBe Status.FORBIDDEN
@@ -82,6 +77,20 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
       withClue("test 504") {
         val result = testController.customResponse(504).apply(fakeRequestWithHeaders)
         Helpers.status(result) shouldBe Status.GATEWAY_TIMEOUT
+      }
+    }
+
+    "return custom redirect result as specified in the URL path parameter" in new Setup {
+      withClue("test 301") {
+        val result = testController.customResponse(301).apply(fakeRequestWithHeaders)
+        Helpers.status(result) shouldBe Status.MOVED_PERMANENTLY
+        Helpers.redirectLocation(result) shouldBe Some("/customs-notifications-receiver-stub/pushnotifications")
+      }
+
+      withClue("test 307") {
+        val result = testController.customResponse(307).apply(fakeRequestWithHeaders)
+        Helpers.status(result) shouldBe Status.TEMPORARY_REDIRECT
+        Helpers.redirectLocation(result) shouldBe Some("/customs-notifications-receiver-stub/pushnotifications")
       }
     }
   }

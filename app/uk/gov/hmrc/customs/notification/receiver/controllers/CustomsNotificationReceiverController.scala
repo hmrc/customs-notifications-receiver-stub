@@ -129,6 +129,14 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
 
   def customResponse(statusCode: Int): Action[AnyContent] = Action.async {
     logger.debug(s"Responding with HTTP status $statusCode as requested")
-    Future.successful(ErrorResponse(statusCode, "REQUESTED_ERROR", s"Returning HTTP status $statusCode as requested").XmlResult)
+
+    val result = statusCode match {
+      case code if (code >= 300) && (code < 400) =>
+        Redirect(routes.CustomsNotificationReceiverController.post(), code)
+      case _ =>
+        ErrorResponse(statusCode, "REQUESTED_ERROR", s"Returning HTTP status $statusCode as requested").XmlResult
+    }
+
+    Future.successful(result)
   }
 }
