@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package unit.controllers
 
 import akka.util.Timeout
-import controllers.Default
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterEach, Matchers}
@@ -49,6 +48,13 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
   }
 
   "CustomsNotificationReceiverController" should {
+    val fakeRequestWithHeaders = FakeRequest().withHeaders(
+      AUTHORIZATION -> CsidOne.toString,
+      CONTENT_TYPE -> MimeTypes.XML,
+      USER_AGENT -> "Customs Declaration Service",
+      CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+    )
+
     "clear endpoint should call clearNotifications in Service" in new Setup {
       await(testController.clearNotifications().apply(FakeRequest()))
 
@@ -56,15 +62,27 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
     }
 
     "return 400 when request body is not XML" in new Setup {
-      private val result = testController.post().apply(FakeRequest().withTextBody("INVALID") withHeaders(
-        AUTHORIZATION -> CsidOne.toString,
-        CONTENT_TYPE -> MimeTypes.XML,
-        USER_AGENT -> "Customs Declaration Service",
-        CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
-      ))
+      private val result = testController.post().apply(fakeRequestWithHeaders)
 
       Helpers.status(result) shouldBe Status.BAD_REQUEST
       string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+    }
+
+    "return custom HTTP status code as specified in the URL path parameter" in new Setup {
+      withClue("test 301") {
+        val result = testController.customResponse(301).apply(fakeRequestWithHeaders)
+        Helpers.status(result) shouldBe Status.MOVED_PERMANENTLY
+      }
+
+      withClue("test 403") {
+        val result = testController.customResponse(403).apply(fakeRequestWithHeaders)
+        Helpers.status(result) shouldBe Status.FORBIDDEN
+      }
+
+      withClue("test 504") {
+        val result = testController.customResponse(504).apply(fakeRequestWithHeaders)
+        Helpers.status(result) shouldBe Status.GATEWAY_TIMEOUT
+      }
     }
   }
 }
