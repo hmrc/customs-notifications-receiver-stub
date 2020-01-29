@@ -81,16 +81,18 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
     }
 
     "return custom redirect result as specified in the URL path parameter" in new Setup {
+      val redirectLoaction = "/customs-notifications-receiver-stub/pushnotifications"
+
       withClue("test 301") {
         val result = testController.customResponse(301).apply(fakeRequestWithHeaders)
         Helpers.status(result) shouldBe Status.MOVED_PERMANENTLY
-        Helpers.redirectLocation(result) shouldBe Some("/customs-notifications-receiver-stub/pushnotifications")
+        Helpers.redirectLocation(result) shouldBe Some(redirectLoaction)
       }
 
       withClue("test 307") {
         val result = testController.customResponse(307).apply(fakeRequestWithHeaders)
         Helpers.status(result) shouldBe Status.TEMPORARY_REDIRECT
-        Helpers.redirectLocation(result) shouldBe Some("/customs-notifications-receiver-stub/pushnotifications")
+        Helpers.redirectLocation(result) shouldBe Some(redirectLoaction)
       }
     }
   }
