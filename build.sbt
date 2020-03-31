@@ -19,10 +19,9 @@ resolvers ++= Seq(
   Resolver.bintrayRepo("hmrc", "releases"),
   Resolver.jcenterRepo)
 
-lazy val AcceptanceTest = config("acceptance") extend Test
 lazy val CdsIntegrationComponentTest = config("it") extend Test
 
-val testConfig = Seq(AcceptanceTest, CdsIntegrationComponentTest, Test)
+val testConfig = Seq(CdsIntegrationComponentTest, Test)
 
 def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[Group] =
   tests.groupBy(_.name.takeWhile(_ != '.')).filter(packageAndTests => packages contains packageAndTests._1) map {
@@ -31,8 +30,7 @@ def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[G
   } toSeq
 
 lazy val testAll = TaskKey[Unit]("test-all")
-lazy val allTest = Seq(testAll := (test in AcceptanceTest)
-  .dependsOn((test in CdsIntegrationComponentTest).dependsOn(test in Test)).value)
+lazy val allTest = Seq(testAll := (test in CdsIntegrationComponentTest).dependsOn(test in Test).value)
 
 lazy val microservice = (project in file("."))
   .enablePlugins(PlayScala)
@@ -51,14 +49,10 @@ lazy val microservice = (project in file("."))
   )
   .settings(majorVersion := 0)
 
-def onPackageName(rootPackage: String): String => Boolean = {
-  testName => testName startsWith rootPackage
-}
-
 lazy val unitTestSettings =
   inConfig(Test)(Defaults.testTasks) ++
     Seq(
-      testOptions in Test := Seq(Tests.Filter(onPackageName("unit"))),
+      testOptions in Test := Seq(Tests.Filter(unitTestFilter)),
       unmanagedSourceDirectories in Test := Seq((baseDirectory in Test).value / "test"),
       addTestReportOption(Test, "test-reports")
     )
