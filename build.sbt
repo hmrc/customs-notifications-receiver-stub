@@ -20,9 +20,9 @@ resolvers ++= Seq(
   Resolver.jcenterRepo)
 
 lazy val AcceptanceTest = config("acceptance") extend Test
-lazy val CdsIntegrationTest = config("it") extend Test
+lazy val CdsIntegrationComponentTest = config("it") extend Test
 
-val testConfig = Seq(AcceptanceTest, CdsIntegrationTest, Test)
+val testConfig = Seq(AcceptanceTest, CdsIntegrationComponentTest, Test)
 
 def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[Group] =
   tests.groupBy(_.name.takeWhile(_ != '.')).filter(packageAndTests => packages contains packageAndTests._1) map {
@@ -32,7 +32,7 @@ def forkedJvmPerTestConfig(tests: Seq[TestDefinition], packages: String*): Seq[G
 
 lazy val testAll = TaskKey[Unit]("test-all")
 lazy val allTest = Seq(testAll := (test in AcceptanceTest)
-  .dependsOn((test in CdsIntegrationTest).dependsOn(test in Test)).value)
+  .dependsOn((test in CdsIntegrationComponentTest).dependsOn(test in Test)).value)
 
 lazy val microservice = (project in file("."))
   .enablePlugins(PlayScala)
@@ -44,8 +44,7 @@ lazy val microservice = (project in file("."))
   .settings(
     commonSettings,
     unitTestSettings,
-    integrationTestSettings,
-    acceptanceTestSettings,
+    integrationComponentTestSettings,
     playPublishingSettings,
     allTest,
     scoverageSettings
@@ -64,23 +63,14 @@ lazy val unitTestSettings =
       addTestReportOption(Test, "test-reports")
     )
 
-lazy val integrationTestSettings =
-  inConfig(CdsIntegrationTest)(Defaults.testTasks) ++
+lazy val integrationComponentTestSettings =
+  inConfig(CdsIntegrationComponentTest)(Defaults.testTasks) ++
     Seq(
-      testOptions in CdsIntegrationTest := Seq(Tests.Filters(Seq(onPackageName("integration"), onPackageName("acceptance")))),
-      fork in CdsIntegrationTest := false,
-      parallelExecution in CdsIntegrationTest := false,
-      addTestReportOption(CdsIntegrationTest, "int-test-reports"),
-      testGrouping in CdsIntegrationTest := forkedJvmPerTestConfig((definedTests in Test).value, "integration", "acceptance")
-    )
-
-lazy val acceptanceTestSettings =
-  inConfig(AcceptanceTest)(Defaults.testTasks) ++
-    Seq(
-      testOptions in AcceptanceTest := Seq(Tests.Filter(onPackageName("acceptance"))),
-      fork in AcceptanceTest := false,
-      parallelExecution in AcceptanceTest := false,
-      addTestReportOption(AcceptanceTest, "acceptance-reports")
+      testOptions in CdsIntegrationComponentTest := Seq(Tests.Filter(integrationComponentTestFilter)),
+      fork in CdsIntegrationComponentTest := false,
+      parallelExecution in CdsIntegrationComponentTest := false,
+      addTestReportOption(CdsIntegrationComponentTest, "int-comp-test-reports"),
+      testGrouping in CdsIntegrationComponentTest := forkedJvmPerTestConfig((definedTests in Test).value, "integration", "component")
     )
 
 lazy val commonSettings: Seq[Setting[_]] = publishingSettings ++ gitStampSettings
@@ -99,6 +89,9 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageHighlighting := true,
   parallelExecution in Test := false
 )
+
+def integrationComponentTestFilter(name: String): Boolean = (name startsWith "integration") || (name startsWith "component")
+def unitTestFilter(name: String): Boolean = name startsWith "unit"
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
