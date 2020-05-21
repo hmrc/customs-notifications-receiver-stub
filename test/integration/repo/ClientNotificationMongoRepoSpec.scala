@@ -27,7 +27,7 @@ import reactivemongo.api.DB
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 import util.MockitoPassByNameHelper.PassByNameVerifier
 import util.TestData._
 

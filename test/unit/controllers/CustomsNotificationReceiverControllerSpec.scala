@@ -28,7 +28,7 @@ import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
 import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
-import uk.gov.hmrc.play.test.UnitSpec
+import util.UnitSpec
 import util.TestData._
 
 import scala.concurrent.duration._

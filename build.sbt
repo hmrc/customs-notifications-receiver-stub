@@ -1,10 +1,8 @@
 import AppDependencies._
-import org.scalastyle.sbt.ScalastylePlugin._
-import play.sbt.routes.RoutesKeys._
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, defaultSettings, scalaSettings, targetJvm}
+import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm}
 import uk.gov.hmrc.PublishingSettings._
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
@@ -12,7 +10,7 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import scala.language.postfixOps
 
 name := "customs-notifications-receiver-stub"
-scalaVersion := "2.12.10"
+scalaVersion := "2.12.11"
 targetJvm := "jvm-1.8"
 
 resolvers ++= Seq(
@@ -91,7 +89,7 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 val compileDependencies = Seq(customsApiCommon, simpleReactiveMongo)
 
-val testDependencies = Seq(hmrcTest, scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests, reactiveMongoTest)
+val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests, reactiveMongoTest)
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 

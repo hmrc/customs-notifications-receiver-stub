@@ -28,7 +28,7 @@ class InMemoryPersistenceService extends NotificationRepo {
 
   private implicit val ec = Helpers.stubControllerComponents().executionContext
 
-  private var notifications = new scala.collection.mutable.ListBuffer[NotificationRequest]
+  private val notifications = new scala.collection.mutable.ListBuffer[NotificationRequest]
 
   def persist(notificationRequest: NotificationRequest): Future[Boolean] = {
     notifications += notificationRequest

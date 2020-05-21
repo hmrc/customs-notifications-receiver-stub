@@ -16,18 +16,16 @@
 
 package integration.controllers
 
-import com.google.inject.Inject
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorContentTypeHeaderInvalid
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
-import uk.gov.hmrc.play.test.UnitSpec
-import util.TestData
 import util.TestData.ConversationIdOne
+import util.{TestData, UnitSpec}
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
 
