@@ -46,7 +46,7 @@ class CustomsNotificationReceiverControllerSpec
       .build()
 
   private class PersistenceModule() extends AbstractModule {
-    def configure() {
+    override def configure() {
       bind(classOf[NotificationRepo]).to(classOf[InMemoryPersistenceService])
       bind(classOf[Mode]).toInstance(Mode.Test)
     }
