@@ -40,6 +40,7 @@ lazy val microservice = (project in file("."))
     scoverageSettings
   )
   .settings(majorVersion := 0)
+  .settings(scalacOptions += "-P:silencer:pathFilters=routes")
 
 lazy val unitTestSettings =
   inConfig(Test)(Defaults.testTasks) ++
@@ -53,7 +54,6 @@ lazy val integrationComponentTestSettings =
   inConfig(CdsIntegrationComponentTest)(Defaults.testTasks) ++
     Seq(
       CdsIntegrationComponentTest / testOptions := Seq(Tests.Filter(integrationComponentTestFilter)),
-      CdsIntegrationComponentTest / fork := false,
       CdsIntegrationComponentTest /  parallelExecution := false,
       addTestReportOption(CdsIntegrationComponentTest, "int-comp-test-reports"),
       CdsIntegrationComponentTest / testGrouping := forkedJvmPerTestConfig((Test / definedTests).value, "integration", "component")
@@ -81,12 +81,10 @@ def unitTestFilter(name: String): Boolean = name startsWith "unit"
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-val compileDependencies = Seq(customsApiCommon, simpleReactiveMongo)
+val compileDependencies = Seq(customsApiCommon, simpleReactiveMongo, silencerPlugin, silencerLib)
 
 val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests, reactiveMongoTest)
 
 Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
 libraryDependencies ++= compileDependencies ++ testDependencies
-
-update / evictionWarningOptions := EvictionWarningOptions.default.withWarnTransitiveEvictions(false)

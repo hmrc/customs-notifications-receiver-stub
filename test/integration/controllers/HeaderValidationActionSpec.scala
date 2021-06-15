@@ -29,7 +29,6 @@ import util.{TestData, UnitSpec}
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
 
-  private implicit val ec = Helpers.stubControllerComponents().executionContext
   val mockLogger = mock[CdsLogger]
   val headerValidationAction = new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents())
 

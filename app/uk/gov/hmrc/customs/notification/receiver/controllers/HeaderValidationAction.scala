@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
 @Singleton
-class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponents)(implicit ec: ExecutionContext) extends ActionRefiner[Request, ExtractedHeadersRequest] {
+class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponents) extends ActionRefiner[Request, ExtractedHeadersRequest] {
 
   override def executionContext: ExecutionContext = cc.executionContext
 
