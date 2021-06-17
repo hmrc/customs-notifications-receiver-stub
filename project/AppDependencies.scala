@@ -4,15 +4,15 @@ object AppDependencies {
 
   private val scalatestplusVersion = "3.1.3"
   private val mockitoVersion = "3.11.1"
-  private val wireMockVersion = "2.27.2"
-  private val customsApiCommonVersion = "1.55.0"
+  private val wireMockVersion = "2.28.1"
+  private val customsApiCommonVersion = "1.56.0"
   private val simpleReactiveMongoVersion = "8.0.0-play-27"
   private val reactiveMongoTestVersion = "5.0.0-play-27"
   private val testScope = "test,it"
 
   val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplusVersion % testScope
 
-  val wireMock = "com.github.tomakehurst" % "wiremock" % wireMockVersion % testScope exclude("org.apache.httpcomponents","httpclient") exclude("org.apache.httpcomponents","httpcore")
+  val wireMock = "com.github.tomakehurst" % "wiremock-jre8" % wireMockVersion % testScope exclude("org.apache.httpcomponents","httpclient") exclude("org.apache.httpcomponents","httpcore")
 
   val mockito =  "org.mockito" % "mockito-core" % mockitoVersion % testScope
 
