@@ -1,4 +1,5 @@
 import AppDependencies._
+import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
@@ -41,6 +42,7 @@ lazy val microservice = (project in file("."))
   )
   .settings(majorVersion := 0)
   .settings(scalacOptions += "-P:silencer:pathFilters=routes")
+  .settings(playDefaultPort := 9826)
 
 lazy val unitTestSettings =
   inConfig(Test)(Defaults.testTasks) ++
