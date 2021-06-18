@@ -160,7 +160,7 @@ The Response body will contain the payload that was saved eg:
     curl -X GET \
       http://localhost:9826/customs-notifications-receiver-stub/pushnotifications/totalcount \
       -H 'accept: application/json' \
-      -H 'content-type: application/json' \      
+      -H 'content-type: application/json'       
 
 # `DELETE` endpoint for clearing all stored notifications.
 
