@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import util.{TestData, UnitSpec}
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
 
-  private implicit val ec = Helpers.stubControllerComponents().executionContext
   val mockLogger = mock[CdsLogger]
   val headerValidationAction = new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents())
 

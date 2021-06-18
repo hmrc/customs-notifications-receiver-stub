@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
 @Singleton
-class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponents)(implicit ec: ExecutionContext) extends ActionRefiner[Request, ExtractedHeadersRequest] {
+class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponents) extends ActionRefiner[Request, ExtractedHeadersRequest] {
 
   override def executionContext: ExecutionContext = cc.executionContext
 

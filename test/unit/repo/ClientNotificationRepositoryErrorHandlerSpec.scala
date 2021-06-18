@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package unit.repo
 
 import org.scalatestplus.mockito.MockitoSugar
-import reactivemongo.api.commands.{DefaultWriteResult, WriteConcernError, WriteError}
+import reactivemongo.api.commands.{UpdateWriteResult, WriteConcernError, WriteError}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequestRecord
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepositoryErrorHandler
@@ -84,13 +84,15 @@ class ClientNotificationRepositoryErrorHandlerSpec extends UnitSpec with Mockito
 
   private def writeResult(alteredRecords: Int, writeErrors: Seq[WriteError] = Nil,
                           writeConcernError: Option[WriteConcernError] = None) = {
-    DefaultWriteResult(
+    UpdateWriteResult(
       ok = true,
       n = alteredRecords,
       writeErrors = writeErrors,
       writeConcernError = writeConcernError,
       code = None,
-      errmsg = None)
+      errmsg = None,
+      nModified = 1,
+      upserted = Seq.empty)
   }
 
 }
