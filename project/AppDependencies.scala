@@ -2,28 +2,25 @@ import sbt._
 
 object AppDependencies {
 
-  private val scalatestplusVersion = "3.1.3"
-  private val mockitoVersion = "3.11.1"
-  private val wireMockVersion = "2.28.1"
-  private val customsApiCommonVersion = "1.56.0"
-  private val simpleReactiveMongoVersion = "8.0.0-play-27"
-  private val reactiveMongoTestVersion = "5.0.0-play-27"
+  private val customsApiCommonVersion = "1.57.0"
+
   private val testScope = "test,it"
 
-  val scalaTestPlusPlay = "org.scalatestplus.play" %% "scalatestplus-play" % scalatestplusVersion % testScope
+  val compile = Seq(
+    "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion,
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "8.0.0-play-28",
+    "uk.gov.hmrc" %% "work-item-repo" % "8.1.0-play-28",
+    "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full,
+    compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full)
+  )
 
-  val wireMock = "com.github.tomakehurst" % "wiremock-jre8" % wireMockVersion % testScope exclude("org.apache.httpcomponents","httpclient") exclude("org.apache.httpcomponents","httpcore")
+  val test = Seq(
+    "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % testScope,
+    "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion % testScope classifier "tests",
+    "com.github.tomakehurst" % "wiremock-standalone" % "2.27.1" % testScope,
+    "org.scalatestplus" %% "mockito-3-4" % "3.2.9.0" % testScope,
 
-  val mockito =  "org.mockito" % "mockito-core" % mockitoVersion % testScope
-
-  val customsApiCommon = "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion
-
-  val simpleReactiveMongo = "uk.gov.hmrc" %% "simple-reactivemongo" % simpleReactiveMongoVersion
-
-  val reactiveMongoTest = "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % testScope
-
-  val customsApiCommonTests = "uk.gov.hmrc" %% "customs-api-common" % customsApiCommonVersion % testScope classifier "tests"
-
-  val silencerPlugin = compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.5" cross CrossVersion.full)
-  val silencerLib = "com.github.ghik" % "silencer-lib" % "1.7.5" % Provided cross CrossVersion.full
+    "uk.gov.hmrc" %% "reactivemongo-test" % "5.0.0-play-28" % testScope,
+    "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % testScope
+  )
 }

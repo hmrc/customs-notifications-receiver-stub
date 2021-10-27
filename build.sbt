@@ -1,17 +1,15 @@
-import AppDependencies._
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm}
-import uk.gov.hmrc.PublishingSettings._
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 import scala.language.postfixOps
 
 name := "customs-notifications-receiver-stub"
-scalaVersion := "2.12.13"
+scalaVersion := "2.12.14"
 targetJvm := "jvm-1.8"
 
 lazy val CdsIntegrationComponentTest = config("it") extend Test
@@ -36,7 +34,6 @@ lazy val microservice = (project in file("."))
     commonSettings,
     unitTestSettings,
     integrationComponentTestSettings,
-    playPublishingSettings,
     allTest,
     scoverageSettings
   )
@@ -63,9 +60,6 @@ lazy val integrationComponentTestSettings =
 
 lazy val commonSettings: Seq[Setting[_]] = publishingSettings ++ gitStampSettings
 
-lazy val playPublishingSettings: Seq[sbt.Setting[_]] = Seq(credentials += SbtCredentials) ++
-  publishAllArtefacts
-
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>"
@@ -83,10 +77,6 @@ def unitTestFilter(name: String): Boolean = name startsWith "unit"
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-val compileDependencies = Seq(customsApiCommon, simpleReactiveMongo, silencerPlugin, silencerLib)
-
-val testDependencies = Seq(scalaTestPlusPlay, wireMock, mockito, customsApiCommonTests, reactiveMongoTest)
-
 Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
-libraryDependencies ++= compileDependencies ++ testDependencies
+libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
