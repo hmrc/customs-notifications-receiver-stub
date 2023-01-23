@@ -21,12 +21,11 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
 import play.api.test.Helpers
-import reactivemongo.api.DB
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
-import uk.gov.hmrc.mongo.MongoSpecSupport
 import util.UnitSpec
 import util.MockitoPassByNameHelper.PassByNameVerifier
 import util.TestData._
@@ -34,26 +33,29 @@ import util.TestData._
 class ClientNotificationMongoRepoSpec extends UnitSpec
   with BeforeAndAfterAll
   with BeforeAndAfterEach
-  with MockitoSugar
-  with MongoSpecSupport  { self =>
+  with GuiceOneAppPerSuite
+  with MockitoSugar {
 
   private implicit val ec = Helpers.stubControllerComponents().executionContext
 
   private val mockLogger = mock[CdsLogger]
   private val mockErrorHandler = mock[NotificationRepositoryErrorHandler]
 
-  private val mongoDbProvider = new MongoDbProvider {
-    override val mongo: () => DB = self.mongo
-  }
+//  private val mongoDbProvider = new MongoDbProvider {
+//    override val mongo: () => DB = self.mongo
+//  }
+  private val repository = app.injector.instanceOf[MongoNotificationsRepo]
 
-  private val repository = new MongoNotificationsRepo(mongoDbProvider, mockErrorHandler, mockLogger)
+ // private val repository = new MongoNotificationsRepo(mongoDbProvider, mockErrorHandler, mockLogger)
 
   override def beforeEach() {
-    dropTestCollection("notifications")
+    repository.collection.drop()
+    //dropTestCollection("notifications")
   }
 
   override def afterAll() {
-    dropTestCollection("notifications")
+    repository.collection.drop()
+   // dropTestCollection("notifications")
   }
 
   private def collectionSize: Int = {

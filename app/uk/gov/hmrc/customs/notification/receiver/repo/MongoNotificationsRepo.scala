@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,55 +17,59 @@
 package uk.gov.hmrc.customs.notification.receiver.repo
 
 
+import org.mongodb.scala.SingleObservable
+import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions, Indexes}
+import org.mongodb.scala.model.Indexes.{ascending, compoundIndex, descending}
+import uk.gov.hmrc.mongo.{MongoComponent, MongoUtils}
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
-import reactivemongo.api.Cursor
-import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONObjectID
-import reactivemongo.play.json.JsObjectDocumentWriter
+import uk.gov.hmrc.mongo.play.json.Codecs
+// import reactivemongo.api.Cursor
+import org.mongodb.scala.model.Filters.{and, equal, lt}
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.logging.LoggingHelper._
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
-import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
-                                       errorHandler: NotificationRepositoryErrorHandler,
+class MongoNotificationsRepo @Inject()(mongo: MongoComponent,
                                        logger: CdsLogger)
                                       (implicit ec: ExecutionContext)
-  extends ReactiveRepository[NotificationRequestRecord, BSONObjectID](
+  extends PlayMongoRepository[NotificationRequestRecord](
     collectionName = "notifications",
-    mongo = mongoDbProvider.mongo,
-    domainFormat = NotificationRequestRecord.format
-  ) with NotificationRepo {
-
-  private implicit val format: Format[NotificationRequestRecord] = NotificationRequestRecord.format
-
-  override def indexes: Seq[Index] = Seq(
-    Index(
-      key = Seq("notification.csid" -> IndexType.Ascending, "timeReceived" -> IndexType.Descending),
-      name = Some("csid-timeReceived-Index"),
-      unique = false
-    ),
-    Index(
-      key = Seq("notification.conversationId" -> IndexType.Ascending, "timeReceived" -> IndexType.Descending),
-      name = Some("conversationId-timeReceived-Index"),
-      unique = false
+    mongoComponent = mongo,
+    domainFormat = NotificationRequestRecord.format,
+    indexes = Seq(
+      IndexModel(
+        compoundIndex(ascending("notification.csid"), descending("timeReceived")),
+        IndexOptions()
+          .name("csid-timeReceived-Index")
+          .unique(false)
+      ),
+      IndexModel(
+        compoundIndex(ascending("notification.conversationId"),descending("timeReceived")),
+        IndexOptions()
+          .name("conversationId-timeReceived-Index")
+          .unique(false)
+      ),
     )
-  )
+
+  ) with NotificationRepo {
 
   def persist(n: NotificationRequest): Future[Boolean] = {
     logger.debug(s"${logMsgPrefix(n)} saving clientNotification: $n")
 
     lazy val errorMsg = s"Client Notification not saved for clientSubscriptionId ${n.csid}"
     val record = NotificationRequestRecord(n)
-    val selector = Json.obj("_id" -> record.id)
-    val update = Json.obj("$currentDate" -> Json.obj("timeReceived" -> true), "$set" -> record)
-    collection.update(ordered = false).one(selector, update, upsert = true).map {
-      writeResult => errorHandler.handleSaveError(writeResult, errorMsg, record)
+    val selector = and(equal("_id" ,  record.id))
+    val update = and(equal("$currentDate" , ("timeReceived" , true)), equal( "$set" , record))
+//    collection.update(ordered = false).one(selector, update, upsert = true).map {
+    collection.findOneAndUpdate(selector, update, options= FindOneAndUpdateOptions().upsert(true)).toFuture.map {
+   // writeResult => errorHandler.handleSaveError(writeResult, errorMsg, record)
     }
 
   }
@@ -73,43 +77,47 @@ class MongoNotificationsRepo @Inject()(mongoDbProvider: MongoDbProvider,
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] =
   {
     logger.debug(s"fetching clientNotification(s) with csid: ${csid.toString}")
-    val selector = Json.obj("notification.csid" -> csid)
-    val sortOrder = Json.obj("timeReceived" -> 1)
-    val cursor = collection.find(selector, None).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
+    val selector = equal("notification.csid", csid)
+    val sortOrder = equal("timeReceived" , 1)
+    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
     cursor.map(ns => ns.map(record => record.notification))
   }
 
   def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] =
   {
     logger.debug(s"fetching clientNotification(s) with conversationId: ${conversationId.toString}")
-    val selector = Json.obj("notification.conversationId" -> conversationId)
-    val sortOrder = Json.obj("timeReceived" -> 1)
-    val cursor = collection.find(selector, None).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
+    val selector = equal("notification.conversationId" , conversationId)
+    val sortOrder = ("timeReceived" -> 1)
+    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
     cursor.map(ns => ns.map(record => record.notification))
   }
 
   def notificationCountByCsId(csid: CsId): Future[Int] =
   {
     logger.debug(s"counting clientNotification(s) with csid: ${csid.toString}")
-    val selector = Json.obj("notification.csid" -> csid)
-    count(selector)
+    val selector = equal("notification.csid" , csid)
+    collection.countDocuments(selector).asInstanceOf[SingleObservable[Int]].toFuture()
+   // count(selector)
   }
 
   def notificationCountByConversationId(conversationId: ConversationId): Future[Int] =
   {
     logger.debug(s"counting clientNotification(s) with conversationId: ${conversationId.toString}")
-    val selector = Json.obj("notification.conversationId" -> conversationId)
-    count(selector)
+    val selector = equal("notification.conversationId" , conversationId)
+    collection.countDocuments(selector).asInstanceOf[SingleObservable[Int]].toFuture()
+   // count(selector)
   }
 
   def notificationCount: Future[Int] =
   {
     logger.debug("counting all clientNotifications")
-    count(Json.obj())
+    collection.countDocuments().asInstanceOf[SingleObservable[Int]].toFuture()
+//    count(Json.obj())
   }
 
   def clearAll(): Future[Unit] = {
-    collection.drop(failIfNotFound = true).map{isOk =>
+    //collection..drop(failIfNotFound = true).map{isOK =>
+    collection.drop().toFuture().map{isOk =>
       logger.debug(s"clear all result=$isOk")
       ()
     }

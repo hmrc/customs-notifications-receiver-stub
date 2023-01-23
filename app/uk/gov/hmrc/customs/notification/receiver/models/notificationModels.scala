@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 package uk.gov.hmrc.customs.notification.receiver.models
 
 import java.util.UUID
-
+import org.bson.types.ObjectId
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoUuidFormats}
 
 case class Header(name: String, value: String)
 
@@ -26,12 +27,12 @@ object Header{
   implicit val formats: Format[Header] = Json.format[Header]
 }
 
-case class ConversationId(id: UUID) extends AnyVal {
-  override def toString: String = id.toString
+case class ConversationId(_id: UUID) extends AnyVal {
+  override def toString: String = _id.toString
 }
 object ConversationId {
   implicit val conversationIdJF = new Format[ConversationId] {
-    def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
+    def writes(conversationId: ConversationId): JsValue = JsString(conversationId._id.toString)
     def reads(json: JsValue): JsResult[ConversationId] = json match {
       case JsNull => JsError()
       case _ => JsSuccess(ConversationId(json.as[UUID]))
@@ -39,12 +40,12 @@ object ConversationId {
   }
 }
 
-case class CsId(id: UUID) extends AnyVal {
-  override def toString: String = id.toString
+case class CsId(_id: UUID) extends AnyVal {
+  override def toString: String = _id.toString
 }
 object CsId {
   implicit val clientSubscriptionIdJF = new Format[CsId] {
-    def writes(csid: CsId): JsString = JsString(csid.id.toString)
+    def writes(csid: CsId): JsString = JsString(csid._id.toString)
     def reads(json: JsValue): JsResult[CsId] = json match {
       case JsNull => JsError()
       case _ => JsSuccess(CsId(json.as[UUID]))
