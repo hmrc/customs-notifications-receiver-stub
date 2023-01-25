@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@
 package integration.repo
 
 import org.joda.time.{DateTime, DateTimeZone, Seconds}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import org.mongodb.scala.model.Filters
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.libs.json.Json
-import play.api.test.Helpers
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
-import uk.gov.hmrc.customs.notification.receiver.repo.{MongoDbProvider, MongoNotificationsRepo, NotificationRepositoryErrorHandler}
+import uk.gov.hmrc.customs.notification.receiver.repo.MongoNotificationsRepo
 import util.UnitSpec
 import util.MockitoPassByNameHelper.PassByNameVerifier
 import util.TestData._
@@ -36,30 +33,19 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
   with GuiceOneAppPerSuite
   with MockitoSugar {
 
-  private implicit val ec = Helpers.stubControllerComponents().executionContext
-
   private val mockLogger = mock[CdsLogger]
-  private val mockErrorHandler = mock[NotificationRepositoryErrorHandler]
-
-//  private val mongoDbProvider = new MongoDbProvider {
-//    override val mongo: () => DB = self.mongo
-//  }
   private val repository = app.injector.instanceOf[MongoNotificationsRepo]
 
- // private val repository = new MongoNotificationsRepo(mongoDbProvider, mockErrorHandler, mockLogger)
-
   override def beforeEach() {
-    repository.collection.drop()
-    //dropTestCollection("notifications")
+    await(repository.collection.drop().toFuture())
   }
 
   override def afterAll() {
-    repository.collection.drop()
-   // dropTestCollection("notifications")
+    await(repository.collection.drop().toFuture())
   }
 
   private def collectionSize: Int = {
-    await(repository.count(Json.obj()))
+    await(repository.collection.countDocuments().toFuture().toInt)
   }
 
   private def logVerifier(logLevel: String, logText: String) = {
@@ -70,7 +56,6 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
 
   "repository" should {
     "successfully save a single notification" in {
-      when(mockErrorHandler.handleSaveError(any(), any(), any())).thenReturn(true)
 
       val saveResult = await(repository.persist(NotificationRequestOne))
 
@@ -78,7 +63,8 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       logVerifier("debug", logMsg)
       saveResult shouldBe true
       collectionSize shouldBe 1
-      val findResult = await(repository.find("notification.csid" -> CsidOne).head)
+      val selector = Filters.equal("notification.csid", CsidOne)
+      val findResult = await(repository.collection.find(selector).toFuture().head)
       findResult.id should not be None
       findResult.timeReceived should not be None
       Seconds.secondsBetween(DateTime.now(DateTimeZone.UTC), findResult.timeReceived.get).getSeconds should be < 3
@@ -90,7 +76,7 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       await(repository.persist(NotificationRequestOne))
 
       collectionSize shouldBe 2
-      val clientNotifications = await(repository.find("notification.csid" -> CsidOne))
+      val clientNotifications = await(repository.collection.find(Filters.equal("notification.csid", CsidOne)).toFuture())
       clientNotifications.size shouldBe 2
       clientNotifications.head.id should not be None
     }

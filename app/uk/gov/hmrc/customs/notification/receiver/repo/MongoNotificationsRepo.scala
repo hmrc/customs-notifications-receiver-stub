@@ -16,18 +16,16 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
-
 import org.mongodb.scala.SingleObservable
-import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions, Indexes}
+import org.mongodb.scala.bson.BsonValue
+import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions}
 import org.mongodb.scala.model.Indexes.{ascending, compoundIndex, descending}
-import uk.gov.hmrc.mongo.{MongoComponent, MongoUtils}
+import uk.gov.hmrc.mongo.MongoComponent
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.Codecs
-// import reactivemongo.api.Cursor
-import org.mongodb.scala.model.Filters.{and, equal, lt}
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import org.mongodb.scala.model.Filters.{and, equal}
+import play.api.libs.json.Json
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.logging.LoggingHelper._
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
@@ -62,61 +60,78 @@ class MongoNotificationsRepo @Inject()(mongo: MongoComponent,
 
   def persist(n: NotificationRequest): Future[Boolean] = {
     logger.debug(s"${logMsgPrefix(n)} saving clientNotification: $n")
-
-    lazy val errorMsg = s"Client Notification not saved for clientSubscriptionId ${n.csid}"
+   //TODO remove print lines
+    println(s"$n")
     val record = NotificationRequestRecord(n)
-    val selector = and(equal("_id" ,  record.id))
+    println(s"$record")
+    val selector = equal("_id" ,  record.id)
+    println(s"$selector")
     val update = and(equal("$currentDate" , ("timeReceived" , true)), equal( "$set" , record))
-//    collection.update(ordered = false).one(selector, update, upsert = true).map {
-    collection.findOneAndUpdate(selector, update, options= FindOneAndUpdateOptions().upsert(true)).toFuture.map {
-   // writeResult => errorHandler.handleSaveError(writeResult, errorMsg, record)
+    println(s"$update")
+    collection.findOneAndUpdate(selector, update, options= FindOneAndUpdateOptions().upsert(true)).toFutureOption().map {
+      case Some(_: NotificationRequestRecord) => true
+      case None =>
+        val errorLogMsg = s"Client Notification not saved for clientSubscriptionId ${n.csid}"
+        handleError(new RuntimeException(errorLogMsg),errorLogMsg)
+    }.recoverWith {
+      case e =>
+        val errorMsg = s"Client Notification not saved for clientSubscriptionId ${n.csid}"
+        logger.error(errorMsg)
+        Future.failed(e)
     }
 
+  }
+
+  def jsonToBson(json: (String, Json.JsValueWrapper)*): BsonValue = {
+    Codecs.toBson(Json.obj(json: _*))
   }
 
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] =
   {
     logger.debug(s"fetching clientNotification(s) with csid: ${csid.toString}")
     val selector = equal("notification.csid", csid)
-    val sortOrder = equal("timeReceived" , 1)
-    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
-    cursor.map(ns => ns.map(record => record.notification))
+    val sortOrder = ascending("timeReceived")
+    val aggregate = collection.aggregate[NotificationRequest](Seq(selector,sortOrder)).toFuture()
+    aggregate.map(_.toList)
+
   }
 
   def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] =
   {
     logger.debug(s"fetching clientNotification(s) with conversationId: ${conversationId.toString}")
-    val selector = equal("notification.conversationId" , conversationId)
-    val sortOrder = ("timeReceived" -> 1)
-    val cursor = collection.find(selector).sort(sortOrder).cursor().collect[Seq](Int.MaxValue, Cursor.FailOnError[Seq[NotificationRequestRecord]]())
-    cursor.map(ns => ns.map(record => record.notification))
+    val selector = equal("notification.conversationId" , Codecs.toBson(conversationId))
+    val sortOrder = ascending("timeReceived")
+    val aggregate = collection.aggregate[NotificationRequest](Seq(selector, sortOrder)).toFuture()
+    aggregate.map(_.toList)
   }
 
   def notificationCountByCsId(csid: CsId): Future[Int] =
   {
     logger.debug(s"counting clientNotification(s) with csid: ${csid.toString}")
-    val selector = equal("notification.csid" , csid)
+    val selector = equal("notification.csid" , Codecs.toBson(csid))
     collection.countDocuments(selector).asInstanceOf[SingleObservable[Int]].toFuture()
-   // count(selector)
   }
 
   def notificationCountByConversationId(conversationId: ConversationId): Future[Int] =
   {
     logger.debug(s"counting clientNotification(s) with conversationId: ${conversationId.toString}")
-    val selector = equal("notification.conversationId" , conversationId)
+    val selector = equal("notification.conversationId" , Codecs.toBson(conversationId))
     collection.countDocuments(selector).asInstanceOf[SingleObservable[Int]].toFuture()
-   // count(selector)
   }
 
   def notificationCount: Future[Int] =
   {
     logger.debug("counting all clientNotifications")
     collection.countDocuments().asInstanceOf[SingleObservable[Int]].toFuture()
-//    count(Json.obj())
+  }
+
+  def handleError(e: Exception, errorLogMessage: String): Nothing = {
+    lazy val errorMsg = errorLogMessage + s"\n ${e.getMessage}"
+    logger.error(errorMsg)
+    throw new RuntimeException(errorMsg)
   }
 
   def clearAll(): Future[Unit] = {
-    //collection..drop(failIfNotFound = true).map{isOK =>
     collection.drop().toFuture().map{isOk =>
       logger.debug(s"clear all result=$isOk")
       ()

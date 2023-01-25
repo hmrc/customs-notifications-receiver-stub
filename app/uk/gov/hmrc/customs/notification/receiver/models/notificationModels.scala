@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import java.util.UUID
-import org.bson.types.ObjectId
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoUuidFormats}
+import java.util.UUID
 
 case class Header(name: String, value: String)
 
