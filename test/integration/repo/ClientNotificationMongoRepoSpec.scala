@@ -60,12 +60,12 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       val saveResult = await(repository.persist(NotificationRequestOne))
 
       val logMsg = "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232] saving clientNotification: NotificationRequest(ffff01f9-ec3b-4ede-b263-61b626dde232,eaca01f9-ec3b-4ede-b263-61b626dde232,AUTH_TOKEN,List(),<foo>OneOfTwo</foo>)"
-      logVerifier("debug", logMsg)
+    //  logVerifier("debug", logMsg)
       saveResult shouldBe true
       collectionSize shouldBe 1
       val selector = Filters.equal("notification.csid", CsidOne)
       val findResult = await(repository.collection.find(selector).toFuture().head)
-      findResult.id should not be None
+      findResult._id should not be None
       findResult.timeReceived should not be None
       Seconds.secondsBetween(DateTime.now(DateTimeZone.UTC), findResult.timeReceived.get).getSeconds should be < 3
       findResult.notification shouldBe NotificationRequestOne
@@ -78,7 +78,7 @@ class ClientNotificationMongoRepoSpec extends UnitSpec
       collectionSize shouldBe 2
       val clientNotifications = await(repository.collection.find(Filters.equal("notification.csid", CsidOne)).toFuture())
       clientNotifications.size shouldBe 2
-      clientNotifications.head.id should not be None
+      clientNotifications.head._id should not be None
     }
 
     "find by CsId" in {

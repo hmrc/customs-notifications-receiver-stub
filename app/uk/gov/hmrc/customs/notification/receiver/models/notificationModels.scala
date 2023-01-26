@@ -25,12 +25,12 @@ object Header{
   implicit val formats: Format[Header] = Json.format[Header]
 }
 
-case class ConversationId(_id: UUID) extends AnyVal {
-  override def toString: String = _id.toString
+case class ConversationId(id: UUID) extends AnyVal {
+  override def toString: String = id.toString
 }
 object ConversationId {
   implicit val conversationIdJF = new Format[ConversationId] {
-    def writes(conversationId: ConversationId): JsValue = JsString(conversationId._id.toString)
+    def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
     def reads(json: JsValue): JsResult[ConversationId] = json match {
       case JsNull => JsError()
       case _ => JsSuccess(ConversationId(json.as[UUID]))
@@ -38,12 +38,12 @@ object ConversationId {
   }
 }
 
-case class CsId(_id: UUID) extends AnyVal {
-  override def toString: String = _id.toString
+case class CsId(id: UUID) extends AnyVal {
+  override def toString: String = id.toString
 }
 object CsId {
   implicit val clientSubscriptionIdJF = new Format[CsId] {
-    def writes(csid: CsId): JsString = JsString(csid._id.toString)
+    def writes(csid: CsId): JsString = JsString(csid.id.toString)
     def reads(json: JsValue): JsResult[CsId] = json match {
       case JsNull => JsError()
       case _ => JsSuccess(CsId(json.as[UUID]))

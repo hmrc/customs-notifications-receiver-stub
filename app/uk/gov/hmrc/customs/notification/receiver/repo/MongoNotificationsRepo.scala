@@ -18,12 +18,13 @@ package uk.gov.hmrc.customs.notification.receiver.repo
 
 import org.mongodb.scala.SingleObservable
 import org.mongodb.scala.bson.BsonValue
-import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions}
+import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions, ReturnDocument}
 import org.mongodb.scala.model.Indexes.{ascending, compoundIndex, descending}
 import uk.gov.hmrc.mongo.MongoComponent
 
 import javax.inject.{Inject, Singleton}
-import org.mongodb.scala.model.Filters.{and, equal}
+import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Updates.{combine, currentDate, set}
 import play.api.libs.json.Json
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
@@ -60,14 +61,9 @@ class MongoNotificationsRepo @Inject()(mongo: MongoComponent,
 
   def persist(n: NotificationRequest): Future[Boolean] = {
     logger.debug(s"${logMsgPrefix(n)} saving clientNotification: $n")
-   //TODO remove print lines
-    println(s"$n")
     val record = NotificationRequestRecord(n)
-    println(s"$record")
-    val selector = equal("_id" ,  record.id)
-    println(s"$selector")
-    val update = and(equal("$currentDate" , ("timeReceived" , true)), equal( "$set" , record))
-    println(s"$update")
+    val selector = equal("_id" ,  record._id)
+    val update = combine(currentDate("timeReceived"), set( "notification" , record))
     collection.findOneAndUpdate(selector, update, options= FindOneAndUpdateOptions().upsert(true)).toFutureOption().map {
       case Some(_: NotificationRequestRecord) => true
       case None =>
@@ -80,10 +76,6 @@ class MongoNotificationsRepo @Inject()(mongo: MongoComponent,
         Future.failed(e)
     }
 
-  }
-
-  def jsonToBson(json: (String, Json.JsValueWrapper)*): BsonValue = {
-    Codecs.toBson(Json.obj(json: _*))
   }
 
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] =

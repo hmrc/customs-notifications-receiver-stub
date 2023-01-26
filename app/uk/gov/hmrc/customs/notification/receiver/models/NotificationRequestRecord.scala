@@ -24,11 +24,11 @@ import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
 case class NotificationRequestRecord(
                 notification: NotificationRequest,
                 timeReceived: Option[DateTime] = None,
-                id: ObjectId = new ObjectId()
+                _id: ObjectId = new ObjectId()
               )
 case object NotificationRequestRecord {
   implicit val dateFormats = MongoJodaFormats.dateTimeFormat
-  implicit val idFormat : Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val objectIdFormats : Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val format = Json.format[NotificationRequestRecord]
 
 }
