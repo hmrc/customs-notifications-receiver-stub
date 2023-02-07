@@ -70,8 +70,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   def upsertByCsid(csid: String, conversationId: String, timeReceived: String): Future[Unit] = {
     val filter: Bson = equal("child.csid", csid)
     val dataObject: TestX = TestX(
-      id1 = csid,
-      id2 = conversationId,
       child = TestChild(
         csid = csid,
         conversationId = conversationId,

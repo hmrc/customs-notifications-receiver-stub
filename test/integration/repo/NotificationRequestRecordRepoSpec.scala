@@ -69,15 +69,11 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
     val findResult = await(repository.findByCsid("A"))
 
-    findResult.id1 shouldBe "A"
-    findResult.id2 shouldBe "a"
     findResult.timeReceived shouldBe "1"
     findResult.child shouldBe TestChild("A", "a", "LOL")
 
     val findResult2 = await(repository.findByCsid("C"))
 
-    findResult2.id1 shouldBe "C"
-    findResult2.id2 shouldBe "c"
     findResult2.timeReceived shouldBe "3"
     findResult2.child shouldBe TestChild("C", "c", "LOL")
   }
@@ -89,15 +85,11 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
     val findResult = await(repository.findByConversationId("a"))
 
-    findResult.id1 shouldBe "A"
-    findResult.id2 shouldBe "a"
     findResult.timeReceived shouldBe "1"
     findResult.child shouldBe TestChild("A", "a", "LOL")
 
     val findResult2 = await(repository.findByConversationId("c"))
 
-    findResult2.id1 shouldBe "C"
-    findResult2.id2 shouldBe "c"
     findResult2.timeReceived shouldBe "3"
     findResult2.child shouldBe TestChild("C", "c", "LOL")
   }
@@ -108,8 +100,6 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     await(repository.upsertByCsid("C", "c", "3"))
     val findResult = await(repository.findAny)
 
-    findResult.id1 shouldBe "A"
-    findResult.id2 shouldBe "a"
     findResult.timeReceived shouldBe "1"
     findResult.child shouldBe TestChild("A", "a", "LOL")
   }
