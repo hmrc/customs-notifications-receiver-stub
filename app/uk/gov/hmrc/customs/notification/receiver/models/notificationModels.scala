@@ -100,7 +100,7 @@ object TestX{
 case class TestChild(csid: CsId,
                      conversationId: ConversationId,
                      authHeaderToken: String,
-                     outboundCallHeaders: Seq[Header],
+                     outboundCallHeaders: List[Header],
                      xmlPayload: String)
 
 object TestChild{
@@ -108,7 +108,7 @@ object TestChild{
     (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
-    (__ \ "outboundCallHeaders").format[Seq[Header]] and
+    (__ \ "outboundCallHeaders").format[List[Header]] and
     (__ \ "xmlPayload").format[String]
     )(TestChild.apply, unlift(TestChild.unapply))
 }

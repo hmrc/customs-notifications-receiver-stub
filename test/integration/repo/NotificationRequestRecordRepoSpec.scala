@@ -18,6 +18,7 @@ package integration.repo
 
 import com.codahale.metrics.SharedMetricRegistries
 import com.google.inject.AbstractModule
+import org.bson.types.ObjectId
 import org.joda.time.{DateTime, DateTimeZone, Seconds}
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatestplus.mockito.MockitoSugar
@@ -44,26 +45,70 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     repository.countAllNotifications().futureValue
   }
 
-  val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
-  val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
-  val CsidThree: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
-  val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
-  val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
-  val ConversationIdThree: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
+  val csId1: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
+  val csId2: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
+  val csId3: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
+  val testConversationId1: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
+  val testConversationId2: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
+  val testConversationId3: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
   val testHeader1: Header = Header(name = "testHeader1", value = "value1")
   val testHeader2: Header = Header(name = "testHeader2", value = "value2")
   val testHeader3: Header = Header(name = "testHeader3", value = "value3")
   val testHeader4: Header = Header(name = "testHeader4", value = "value4")
   val testHeader5: Header = Header(name = "testHeader5", value = "value5")
   val testHeader6: Header = Header(name = "testHeader6", value = "value6")
-  val testHeaders1: Seq[Header] = Seq(testHeader1, testHeader2)
-  val testHeaders2: Seq[Header] = Seq(testHeader3, testHeader4)
-  val testHeaders3: Seq[Header] = Seq(testHeader5, testHeader6)
+  //TODO revert to seq?
+  val testHeaders1: List[Header] = List(testHeader1, testHeader2)
+  val testHeaders2: List[Header] = List(testHeader3, testHeader4)
+  val testHeaders3: List[Header] = List(testHeader5, testHeader6)
+  lazy val testObjectId1: ObjectId = new ObjectId
+  lazy val testObjectId2: ObjectId = new ObjectId
+  lazy val testObjectId3: ObjectId = new ObjectId
+  lazy val testAuthHeaderToken: String = "testAuthHeaderToken"
+  lazy val testXmlPayload: String = "testXmlPayload"
+  lazy val testChild1: TestChild = TestChild(
+    csid = csId1,
+    conversationId = testConversationId1,
+    authHeaderToken = testAuthHeaderToken,
+    outboundCallHeaders = testHeaders1,
+    xmlPayload = testXmlPayload)
+  lazy val testChild2: TestChild = TestChild(
+    csid = csId2,
+    conversationId = testConversationId2,
+    authHeaderToken = testAuthHeaderToken,
+    outboundCallHeaders = testHeaders2,
+    xmlPayload = testXmlPayload)
+  lazy val testChild3: TestChild = TestChild(
+    csid = csId3,
+    conversationId = testConversationId3,
+    authHeaderToken = testAuthHeaderToken,
+    outboundCallHeaders = testHeaders3,
+    xmlPayload = testXmlPayload)
+  val testX1: TestX = TestX(
+    child = testChild1,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = testObjectId1)
+  val testX2: TestX = TestX(
+    child = testChild2,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = testObjectId2)
+  val testX3: TestX = TestX(
+    child = testChild3,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = testObjectId3)
 
   private def upsertTestData: Future[Unit] = {
-    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1", testHeaders1))
-    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2", testHeaders2))
-    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3", testHeaders3))
+//    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1", testHeaders1, testObjectId1))
+//    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2", testHeaders2, testObjectId2))
+//    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3", testHeaders3, testObjectId3))
+//    Future.successful()
+    await(repository.upsertNotificationRequestRecordByCsId(testX1))
+    await(repository.upsertNotificationRequestRecordByCsId(testX2))
+    await(repository.upsertNotificationRequestRecordByCsId(testX3))
+    //TODO remove below
     Future.successful()
   }
 
@@ -80,38 +125,44 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   "successfully find a specific notification by id1" in {
     await(upsertTestData)
 
-    val findResult = await(repository.findByCsid(CsidOne))
+    val result1 = await(repository.findByCsid(csId1))
+    result1.child shouldBe testChild1
+    //TODO fix time issue below for all
+    //result1.timeReceived shouldBe testX1.timeReceived
+    result1._id shouldBe testObjectId1
 
-    //findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
+    val result2 = await(repository.findByCsid(csId2))
+    result2.child shouldBe testChild2
+    result2._id shouldBe testObjectId2
 
-    val findResult2 = await(repository.findByCsid(CsidThree))
-
-    //findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", testHeaders3, "XPL")
+    val result3 = await(repository.findByCsid(csId3))
+    result3.child shouldBe testChild3
+    result3._id shouldBe testObjectId3
   }
 
   "successfully find a specific notification by id2" in {
     await(upsertTestData)
 
-    val findResult = await(repository.findByConversationId(ConversationIdOne))
+    val result1 = await(repository.findByConversationId(testConversationId1))
+    result1.child shouldBe testChild1
+    result1._id shouldBe testObjectId1
 
-    //findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
+    val result2 = await(repository.findByConversationId(testConversationId2))
+    result2.child shouldBe testChild2
+    result2._id shouldBe testObjectId2
 
-    val findResult2 = await(repository.findByConversationId(ConversationIdThree))
-
-    //findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", testHeaders3, "XPL")
+    val result3 = await(repository.findByConversationId(testConversationId3))
+    result3.child shouldBe testChild3
+    result3._id shouldBe testObjectId3
   }
 
   "successfully find a random notification" in {
     await(upsertTestData)
 
-    val findResult = await(repository.findAny)
-
-    //findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
+    val result1 = await(repository.findAny)
+    //TODO fix date generation above otherwise this will sometimes find another notification
+    result1.child shouldBe testChild1
+    result1._id shouldBe testObjectId1
   }
 
   //  "ensure indexes are created" in {

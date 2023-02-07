@@ -70,21 +70,13 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
           .unique(false)))
   ) {
 
-  def upsertByCsid(csid: CsId, conversationId: ConversationId, timeReceived: String, outboundCallHeaders: Seq[Header]): Future[Unit] = {
-    val filter: Bson = equal("child.csid", csid)
-    val dataObject: TestX = TestX(
-      child = TestChild(
-        csid = csid,
-        conversationId = conversationId,
-        authHeaderToken = "AHT",
-        outboundCallHeaders = outboundCallHeaders,
-        xmlPayload = "XPL"),
-      timeReceived = DateTime.now().toDateTimeISO,
-      _id = new ObjectId())
+  //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
+  def upsertNotificationRequestRecordByCsId(notificationRequestRecord: TestX): Future[Unit] = {
+    val filter: Bson = equal("child.csid", notificationRequestRecord.child.csid)
 
     collection.findOneAndReplace(
       filter = filter,
-      replacement = dataObject,
+      replacement = notificationRequestRecord,
       options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
   }
 
@@ -111,6 +103,24 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     z
   }
 
+
+//  def upsertByCsid(csid: CsId, conversationId: ConversationId, timeReceived: String, outboundCallHeaders: Seq[Header], objectId: ObjectId): Future[Unit] = {
+//    val filter: Bson = equal("child.csid", csid)
+//    val dataObject: TestX = TestX(
+//      child = TestChild(
+//        csid = csid,
+//        conversationId = conversationId,
+//        authHeaderToken = "AHT",
+//        outboundCallHeaders = outboundCallHeaders.toList,
+//        xmlPayload = "XPL"),
+//      timeReceived = DateTime.now().toDateTimeISO,
+//      _id = objectId)
+//
+//    collection.findOneAndReplace(
+//      filter = filter,
+//      replacement = dataObject,
+//      options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
+//  }
 
 //  def insert(notificationRequest: NotificationRequest): Future[Unit] = {
 //    val notificationRequestRecord: NotificationRequestRecord = NotificationRequestRecord(
