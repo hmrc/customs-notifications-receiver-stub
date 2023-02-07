@@ -73,7 +73,9 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       child = TestChild(
         csid = csid,
         conversationId = conversationId,
-        childValue = "LOL"),
+        authHeaderToken = "AHT",
+        outboundCallHeaders = "OCH",
+        xmlPayload = "XPL"),
       timeReceived = timeReceived,
       _id = new ObjectId())
 

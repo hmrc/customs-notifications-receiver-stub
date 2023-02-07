@@ -114,14 +114,16 @@ object TestX{
 //    ) (unlift(TestX.unapply))
 }
 
-case class TestChild(csid: String, conversationId: String, childValue: String)
+case class TestChild(csid: String, conversationId: String, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
 
 object TestChild{
   //implicit val format: Format[TestChild] = Json.format[TestChild]
   implicit val format: Format[TestChild] = (
     (__ \ "csid").format[String] and
     (__ \ "conversationId").format[String] and
-    (__ \ "childValue").format[String]
+    (__ \ "authHeaderToken").format[String] and
+    (__ \ "outboundCallHeaders").format[String] and
+    (__ \ "xmlPayload").format[String]
     )(TestChild.apply, unlift(TestChild.unapply))
 }
 
