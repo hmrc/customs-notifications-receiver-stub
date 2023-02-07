@@ -50,8 +50,8 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       Codecs.playFormatCodec(TestChild.format)
     ),
     indexes = Seq(
-      IndexModel(ascending("id1")),
-      IndexModel(ascending("id2"))
+      IndexModel(ascending("child.csid")),
+      IndexModel(ascending("child.conversationId"))
     )
 //    indexes = Seq(
 //      IndexModel(
@@ -68,8 +68,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   ) {
 
   def upsertById1(id1: String, id2: String, value: String): Future[Unit] = {
-
-    val filter: Bson = equal("id1", id1)
+    val filter: Bson = equal("child.csid", id1)
     val dataObject: TestX = TestX(
       id1 = id1,
       id2 = id2,
@@ -87,7 +86,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   }
 
   def findById1(id1: String): Future[TestX] = {
-    val filter: Bson = equal("id1", id1)
+    val filter: Bson = equal("child.csid", id1)
     val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
@@ -95,7 +94,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   }
 
   def findById2(id2: String): Future[TestX] = {
-    val filter: Bson = equal("id2", id2)
+    val filter: Bson = equal("child.conversationId", id2)
     val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
