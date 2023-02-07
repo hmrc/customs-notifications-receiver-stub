@@ -72,11 +72,11 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     val dataObject: TestX = TestX(
       id1 = csid,
       id2 = conversationId,
-      timeReceived = timeReceived,
       child = TestChild(
         csid = csid,
         conversationId = conversationId,
         childValue = "LOL"),
+      timeReceived = timeReceived,
       _id = new ObjectId())
 
     collection.findOneAndReplace(
