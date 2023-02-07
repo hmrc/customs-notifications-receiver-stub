@@ -92,16 +92,19 @@ case class TestX(
                 )
 object TestX{
   //implicit val format: Format[TestX] = Json.format[TestX]
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+//  implicit val objectIdWrites: Writes[ObjectId] = MongoFormats.objectIdWrites
+//  implicit val objectIdReads: Reads[ObjectId] = MongoFormats.objectIdReads
+  //implicit val format: Format[TestX] = Json.format[TestX]
   implicit val format: Format[TestX] = (
     (__ \ "id1").format[String] and
       (__ \ "id2").format[String] and
       (__ \ "value").format[String] and
       (__ \ "child").format[TestChild] and
-      (__ \ "id3").formatWithDefault(new ObjectId())
+      (__ \ "id3").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
-  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-  implicit val objectIdWrites: Writes[ObjectId] = MongoFormats.objectIdWrites
-  implicit val objectIdReads: Reads[ObjectId] = MongoFormats.objectIdReads
+
+
 //  implicit val format: Format[TestX] = Format(reads, writes)
 //  implicit val reads: Reads[TestX] = (
 //      (JsPath \ "id1").read[String] and

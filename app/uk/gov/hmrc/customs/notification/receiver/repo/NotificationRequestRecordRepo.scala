@@ -32,6 +32,7 @@ import uk.gov.hmrc.mongo.play.json.Codecs.JsonOps
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 import uk.gov.hmrc.mongo.play.json.formats.MongoUuidFormats.Implicits._
 import uk.gov.hmrc.mongo.play.json.formats.MongoLegacyUuidFormats.Implicits._
+import uk.gov.hmrc.customs.notification.receiver.models.TestX.objectIdFormat
 
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
@@ -66,7 +67,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   ) {
 
   def upsertById1(id1: String, id2: String, value: String): Future[Unit] = {
-    import uk.gov.hmrc.customs.notification.receiver.models.TestX.objectIdFormat
 
     val filter: Bson = equal("id1", id1)
     val dataObject: TestX = TestX(
@@ -75,7 +75,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       value = value,
       child = TestChild("LOL"))
 
-
     collection.findOneAndUpdate(
       filter = filter,
       update = combine(
@@ -83,31 +82,28 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
         set("id2", dataObject.id2),
         set("value", dataObject.value),
         set("child", dataObject.child),
-        set("id3", Codecs.toBson(dataObject.id3))),
+        set("id3", dataObject.id3)),
       options = FindOneAndUpdateOptions().upsert(true)).toFuture().map(_ => ())
   }
 
   def findById1(id1: String): Future[TestX] = {
-    import uk.gov.hmrc.customs.notification.receiver.models.TestX.objectIdFormat
     val filter: Bson = equal("id1", id1)
-    val x: FindObservable[TestX] = collection.find[TestX](filter)
+    val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
     z
   }
 
   def findById2(id2: String): Future[TestX] = {
-    import uk.gov.hmrc.customs.notification.receiver.models.TestX.objectIdFormat
     val filter: Bson = equal("id2", id2)
-    val x: FindObservable[TestX] = collection.find[TestX](filter)
+    val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
     z
   }
 
   def findAny: Future[TestX] = {
-    import uk.gov.hmrc.customs.notification.receiver.models.TestX.objectIdFormat
-    val x: FindObservable[TestX] = collection.find[TestX]()
+    val x: FindObservable[TestX] = collection.find()
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
     z
