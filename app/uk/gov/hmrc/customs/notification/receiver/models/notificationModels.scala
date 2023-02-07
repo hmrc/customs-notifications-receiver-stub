@@ -88,7 +88,7 @@ case class TestX(
                   id2: String,
                   value: String,
                   child: TestChild,
-                  id3: ObjectId = new ObjectId()
+                  _id: ObjectId
                 )
 object TestX{
   //implicit val format: Format[TestX] = Json.format[TestX]
@@ -101,7 +101,7 @@ object TestX{
       (__ \ "id2").format[String] and
       (__ \ "value").format[String] and
       (__ \ "child").format[TestChild] and
-      (__ \ "id3").format[ObjectId]
+      (__ \ "_id").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
 
 
@@ -118,9 +118,14 @@ object TestX{
 //    ) (unlift(TestX.unapply))
 }
 
-case class TestChild(childValue: String)
+case class TestChild(csid: String, conversationId: String, childValue: String)
 
 object TestChild{
-  implicit val format: Format[TestChild] = Json.format[TestChild]
+  //implicit val format: Format[TestChild] = Json.format[TestChild]
+  implicit val format: Format[TestChild] = (
+    (__ \ "csid").format[String] and
+    (__ \ "conversationId").format[String] and
+    (__ \ "childValue").format[String]
+    )(TestChild.apply, unlift(TestChild.unapply))
 }
 

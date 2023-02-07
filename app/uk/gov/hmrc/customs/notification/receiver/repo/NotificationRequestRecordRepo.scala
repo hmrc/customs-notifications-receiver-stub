@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
+import org.bson.types.ObjectId
 import org.mongodb.scala.FindObservable
-import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions, ReplaceOptions, Updates}
+import org.mongodb.scala.model.{FindOneAndReplaceOptions, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReplaceOptions, Updates}
 import org.mongodb.scala.model.Indexes.compoundIndex
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord, TestChild, TestX}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -73,17 +74,16 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       id1 = id1,
       id2 = id2,
       value = value,
-      child = TestChild("LOL"))
+      child = TestChild(
+        csid = id1,
+        conversationId = id2,
+        childValue = "LOL"),
+      _id = new ObjectId())
 
-    collection.findOneAndUpdate(
+    collection.findOneAndReplace(
       filter = filter,
-      update = combine(
-        set("id1", dataObject.id1),
-        set("id2", dataObject.id2),
-        set("value", dataObject.value),
-        set("child", dataObject.child),
-        set("id3", dataObject.id3)),
-      options = FindOneAndUpdateOptions().upsert(true)).toFuture().map(_ => ())
+      replacement = dataObject,
+      options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
   }
 
   def findById1(id1: String): Future[TestX] = {

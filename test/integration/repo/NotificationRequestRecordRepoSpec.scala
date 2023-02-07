@@ -72,14 +72,14 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     findResult.id1 shouldBe "A"
     findResult.id2 shouldBe "a"
     findResult.value shouldBe "1"
-    findResult.child shouldBe TestChild("LOL")
+    findResult.child shouldBe TestChild("A", "a", "LOL")
 
     val findResult2 = await(repository.findById1("C"))
 
     findResult2.id1 shouldBe "C"
     findResult2.id2 shouldBe "c"
     findResult2.value shouldBe "3"
-    findResult2.child shouldBe TestChild("LOL")
+    findResult2.child shouldBe TestChild("C", "c", "LOL")
   }
 
   "successfully find a specific notification by id2" in {
@@ -92,14 +92,14 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     findResult.id1 shouldBe "A"
     findResult.id2 shouldBe "a"
     findResult.value shouldBe "1"
-    findResult.child shouldBe TestChild("LOL")
+    findResult.child shouldBe TestChild("A", "a", "LOL")
 
     val findResult2 = await(repository.findById2("c"))
 
     findResult2.id1 shouldBe "C"
     findResult2.id2 shouldBe "c"
     findResult2.value shouldBe "3"
-    findResult2.child shouldBe TestChild("LOL")
+    findResult2.child shouldBe TestChild("C", "c", "LOL")
   }
 
   "successfully find a random notification" in {
@@ -111,7 +111,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     findResult.id1 shouldBe "A"
     findResult.id2 shouldBe "a"
     findResult.value shouldBe "1"
-    findResult.child shouldBe TestChild("LOL")
+    findResult.child shouldBe TestChild("A", "a", "LOL")
   }
 
 //    "successfully save a single notification" in {
