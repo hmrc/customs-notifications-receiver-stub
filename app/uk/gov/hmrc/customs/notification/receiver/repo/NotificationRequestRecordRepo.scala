@@ -52,22 +52,22 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       Codecs.playFormatCodec(CsId.format),
       Codecs.playFormatCodec(ConversationId.format)
     ),
-    indexes = Seq(
-      IndexModel(ascending("child.csid")),
-      IndexModel(ascending("child.conversationId"))
-    )
 //    indexes = Seq(
-//      IndexModel(
-//        compoundIndex(ascending("notification.csid"), descending("timeReceived")),
-//        IndexOptions()
-//          .name("csid-timeReceived-Index")
-//          .unique(false)
-//      ),
-//      IndexModel(
-//        compoundIndex(ascending("notification.conversationId"), descending("timeReceived")),
-//        IndexOptions()
-//          .name("conversationId-timeReceived-Index")
-//          .unique(false)))
+//      IndexModel(ascending("child.csid")),
+//      IndexModel(ascending("child.conversationId"))
+//    )
+    indexes = Seq(
+      IndexModel(
+        compoundIndex(ascending("child.csid"), descending("timeReceived")),
+        IndexOptions()
+          .name("csid-timeReceived-Index")
+          .unique(false)
+      ),
+      IndexModel(
+        compoundIndex(ascending("child.conversationId"), descending("timeReceived")),
+        IndexOptions()
+          .name("conversationId-timeReceived-Index")
+          .unique(false)))
   ) {
 
   def upsertByCsid(csid: CsId, conversationId: ConversationId, timeReceived: String, outboundCallHeaders: Seq[Header]): Future[Unit] = {
