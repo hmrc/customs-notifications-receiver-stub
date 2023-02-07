@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@ package integration.repo
 import javax.inject.Singleton
 import play.api.test.Helpers
 import uk.gov.hmrc.customs.notification.receiver.models._
-import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
-
 import scala.concurrent.Future
 
 @Singleton
-class InMemoryPersistenceService extends NotificationRepo {
+class InMemoryPersistenceService {
 
   private implicit val ec = Helpers.stubControllerComponents().executionContext
 
@@ -41,7 +39,7 @@ class InMemoryPersistenceService extends NotificationRepo {
     }
   }
 
-  override def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
+  def notificationsByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
     Future.successful {
       notifications.filter(n => n.conversationId == conversationId)
     }
@@ -51,9 +49,9 @@ class InMemoryPersistenceService extends NotificationRepo {
     notifications.clear()
   }
 
-  def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)
+  def notificationCountByCsId(csid: CsId): Future[Int] = notificationsByCsId(csid).map(ns => ns.size)(ec)
 
-  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] = notificationsByConversationId(conversationId).map(ns => ns.size)
+  def notificationCountByConversationId(conversationId: ConversationId): Future[Int] = notificationsByConversationId(conversationId).map(ns => ns.size)(ec)
 
   def notificationCount: Future[Int] = Future.successful(notifications.size)
 }

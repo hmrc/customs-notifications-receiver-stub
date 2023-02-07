@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.repo
+package util
 
-import javax.inject.Singleton
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.diagrams.Diagrams
 
-import com.google.inject.{ImplementedBy, Inject}
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
+object RichMatchers extends RichMatchers
 
-@ImplementedBy(classOf[MongoDb])
-trait MongoDbProvider {
-  def mongo: () => DB
-}
-
-@Singleton
-class MongoDb @Inject()(reactiveMongoComponent: ReactiveMongoComponent)  extends MongoDbProvider {
-  override val mongo: () => DB = reactiveMongoComponent.mongoConnector.db
-}
+trait RichMatchers
+  extends Matchers
+    with Diagrams
+    with TryValues
+    with EitherValues
+    with OptionValues
+    with AppendedClues
+    with ScalaFutures
+    with StreamlinedXml
+    with Inside
+    with Eventually
+    with IntegrationPatience

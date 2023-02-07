@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import java.util.UUID
+import org.bson.types.ObjectId
 
+import java.util.UUID
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 
 case class Header(name: String, value: String)
 
@@ -62,6 +65,59 @@ case class NotificationRequest(
 
 object NotificationRequest {
   private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
+  //implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
+  implicit val format: Format[NotificationRequest] = Format(reads, writes)
+  implicit val reads: Reads[NotificationRequest] = (
+    (JsPath \ "csid").read[CsId] and
+    (JsPath \ "conversationId").read[ConversationId] and
+    (JsPath \ "authHeaderToken").read[String] and
+    (JsPath \ "outboundCallHeaders").read[Seq[Header]] and
+    (JsPath \ "xmlPayload").read[String]
+    )(NotificationRequest.apply _)
+  implicit val writes: Writes[NotificationRequest] = (
+    (JsPath \ "csid").write[CsId] and
+    (JsPath \ "conversationId").write[ConversationId] and
+    (JsPath \ "authHeaderToken").write[String] and
+    (JsPath \ "outboundCallHeaders").write[Seq[Header]] and
+    (JsPath \ "xmlPayload").write[String]
+    )(unlift(NotificationRequest.unapply))
+}
+
+case class TestX(
+                  id1: String,
+                  id2: String,
+                  value: String,
+                  child: TestChild,
+                  id3: ObjectId = new ObjectId()
+                )
+object TestX{
+  //implicit val format: Format[TestX] = Json.format[TestX]
+  implicit val format: Format[TestX] = (
+    (__ \ "id1").format[String] and
+      (__ \ "id2").format[String] and
+      (__ \ "value").format[String] and
+      (__ \ "child").format[TestChild] and
+      (__ \ "id3").formatWithDefault(new ObjectId())
+  )(TestX.apply, unlift(TestX.unapply))
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val objectIdWrites: Writes[ObjectId] = MongoFormats.objectIdWrites
+  implicit val objectIdReads: Reads[ObjectId] = MongoFormats.objectIdReads
+//  implicit val format: Format[TestX] = Format(reads, writes)
+//  implicit val reads: Reads[TestX] = (
+//      (JsPath \ "id1").read[String] and
+//      (JsPath \ "value").read[String]
+//    ) (TestX.apply _)
+//
+//
+//  implicit val writes: Writes[TestX] = (
+//      (JsPath \ "id1").write[String] and
+//      (JsPath \ "value").write[String]
+//    ) (unlift(TestX.unapply))
+}
+
+case class TestChild(childValue: String)
+
+object TestChild{
+  implicit val format: Format[TestChild] = Json.format[TestChild]
 }
 
