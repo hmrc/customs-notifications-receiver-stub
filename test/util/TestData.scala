@@ -36,9 +36,10 @@ object TestData {
 
 
   val AuthToken = "AUTH_TOKEN"
-  val NotificationRequestOne = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>OneOfTwo</foo>")
-  val NotificationRequestOneTwo = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>TwoOfTwo</foo>")
-  val NotificationRequestTwo = NotificationRequest(CsidTwo, ConversationIdTwo, AuthToken, Seq.empty, s"<foo>$CsidTwo</foo>")
+  //TODO revert these to Seq
+  val NotificationRequestOne = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, List.empty, s"<foo>OneOfTwo</foo>")
+  val NotificationRequestOneTwo = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, List.empty, s"<foo>TwoOfTwo</foo>")
+  val NotificationRequestTwo = NotificationRequest(CsidTwo, ConversationIdTwo, AuthToken, List.empty, s"<foo>$CsidTwo</foo>")
 
   def notificationRequestJson(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
 

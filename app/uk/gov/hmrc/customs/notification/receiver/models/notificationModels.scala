@@ -56,60 +56,32 @@ object CsId {
   }
 }
 
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  //implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
-  implicit val format: Format[NotificationRequest] = Format(reads, writes)
-  implicit val reads: Reads[NotificationRequest] = (
-    (JsPath \ "csid").read[CsId] and
-    (JsPath \ "conversationId").read[ConversationId] and
-    (JsPath \ "authHeaderToken").read[String] and
-    (JsPath \ "outboundCallHeaders").read[Seq[Header]] and
-    (JsPath \ "xmlPayload").read[String]
-    )(NotificationRequest.apply _)
-  implicit val writes: Writes[NotificationRequest] = (
-    (JsPath \ "csid").write[CsId] and
-    (JsPath \ "conversationId").write[ConversationId] and
-    (JsPath \ "authHeaderToken").write[String] and
-    (JsPath \ "outboundCallHeaders").write[Seq[Header]] and
-    (JsPath \ "xmlPayload").write[String]
-    )(unlift(NotificationRequest.unapply))
-}
-
-case class TestX(child: TestChild,
+case class TestX(notification: NotificationRequest,
                  timeReceived: DateTime,
                  _id: ObjectId)
 object TestX{
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val dateTimeFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
   implicit val format: Format[TestX] = (
-      (__ \ "child").format[TestChild] and
+      (__ \ "notification").format[NotificationRequest] and
       (__ \ "timeReceived").format[DateTime] and
       (__ \ "_id").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
 }
 
-case class TestChild(csid: CsId,
-                     conversationId: ConversationId,
-                     authHeaderToken: String,
-                     outboundCallHeaders: List[Header],
-                     xmlPayload: String)
+case class NotificationRequest(csid: CsId,
+                               conversationId: ConversationId,
+                               authHeaderToken: String,
+                               outboundCallHeaders: List[Header],
+                               xmlPayload: String)
 
-object TestChild{
-  implicit val format: Format[TestChild] = (
+object NotificationRequest{
+  implicit val format: Format[NotificationRequest] = (
     (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[List[Header]] and
     (__ \ "xmlPayload").format[String]
-    )(TestChild.apply, unlift(TestChild.unapply))
+    )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
 }
 

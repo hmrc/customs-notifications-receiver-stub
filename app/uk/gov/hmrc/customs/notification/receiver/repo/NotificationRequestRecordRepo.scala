@@ -21,7 +21,7 @@ import org.joda.time.DateTime
 import org.mongodb.scala.FindObservable
 import org.mongodb.scala.model.{FindOneAndReplaceOptions, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReplaceOptions, Updates}
 import org.mongodb.scala.model.Indexes.compoundIndex
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord, TestChild, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord, TestX}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import org.mongodb.scala.model.Indexes.{ascending, descending}
@@ -48,19 +48,19 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     collectionName = "notifications",
     domainFormat = TestX.format,
     extraCodecs = Seq(
-      Codecs.playFormatCodec(TestChild.format),
+      Codecs.playFormatCodec(NotificationRequest.format),
       Codecs.playFormatCodec(CsId.format),
       Codecs.playFormatCodec(ConversationId.format)
     ),
     indexes = Seq(
       IndexModel(
-        compoundIndex(ascending("child.csid"), descending("timeReceived")),
+        compoundIndex(ascending("notification.csid"), descending("timeReceived")),
         IndexOptions()
           .name("csid-timeReceived-Index")
           .unique(false)
       ),
       IndexModel(
-        compoundIndex(ascending("child.conversationId"), descending("timeReceived")),
+        compoundIndex(ascending("notification.conversationId"), descending("timeReceived")),
         IndexOptions()
           .name("conversationId-timeReceived-Index")
           .unique(false)))
@@ -68,7 +68,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 
   //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
   def upsertNotificationRequestRecordByCsId(notificationRequestRecord: TestX): Future[Unit] = {
-    val filter: Bson = equal("child.csid", notificationRequestRecord.child.csid)
+    val filter: Bson = equal("notification.csid", notificationRequestRecord.notification.csid)
 
     collection.findOneAndReplace(
       filter = filter,
@@ -77,13 +77,13 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   }
 
   def findByCsid(csid: CsId): Future[TestX] = {
-    val filter: Bson = equal("child.csid", csid)
+    val filter: Bson = equal("notification.csid", csid)
 
     collection.find(filter).toFuture().map(_.toList.head)
   }
 
   def findByConversationId(conversationId: ConversationId): Future[TestX] = {
-    val filter: Bson = equal("child.conversationId", conversationId)
+    val filter: Bson = equal("notification.conversationId", conversationId)
 
     collection.find(filter).toFuture().map(_.toList.head)
   }

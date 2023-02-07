@@ -30,7 +30,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.ItSpec
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, TestChild, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, TestX}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import util.{UnitSpec, WireMockSupport}
 import util.TestData._
@@ -66,36 +66,36 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   lazy val testObjectId3: ObjectId = new ObjectId
   lazy val testAuthHeaderToken: String = "testAuthHeaderToken"
   lazy val testXmlPayload: String = "testXmlPayload"
-  lazy val testChild1: TestChild = TestChild(
+  lazy val notificationRequest1: NotificationRequest = NotificationRequest(
     csid = csId1,
     conversationId = testConversationId1,
     authHeaderToken = testAuthHeaderToken,
     outboundCallHeaders = testHeaders1,
     xmlPayload = testXmlPayload)
-  lazy val testChild2: TestChild = TestChild(
+  lazy val notificationRequest2: NotificationRequest = NotificationRequest(
     csid = csId2,
     conversationId = testConversationId2,
     authHeaderToken = testAuthHeaderToken,
     outboundCallHeaders = testHeaders2,
     xmlPayload = testXmlPayload)
-  lazy val testChild3: TestChild = TestChild(
+  lazy val notificationRequest3: NotificationRequest = NotificationRequest(
     csid = csId3,
     conversationId = testConversationId3,
     authHeaderToken = testAuthHeaderToken,
     outboundCallHeaders = testHeaders3,
     xmlPayload = testXmlPayload)
   val testX1: TestX = TestX(
-    child = testChild1,
+    notification = notificationRequest1,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId1)
   val testX2: TestX = TestX(
-    child = testChild2,
+    notification = notificationRequest2,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId2)
   val testX3: TestX = TestX(
-    child = testChild3,
+    notification = notificationRequest3,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId3)
@@ -122,17 +122,17 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     await(upsertTestData)
 
     val result1 = await(repository.findByCsid(csId1))
-    result1.child shouldBe testChild1
+    result1.notification shouldBe notificationRequest1
     //TODO fix time issue below for all
     //result1.timeReceived shouldBe testX1.timeReceived
     result1._id shouldBe testObjectId1
 
     val result2 = await(repository.findByCsid(csId2))
-    result2.child shouldBe testChild2
+    result2.notification shouldBe notificationRequest2
     result2._id shouldBe testObjectId2
 
     val result3 = await(repository.findByCsid(csId3))
-    result3.child shouldBe testChild3
+    result3.notification shouldBe notificationRequest3
     result3._id shouldBe testObjectId3
   }
 
@@ -140,15 +140,15 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     await(upsertTestData)
 
     val result1 = await(repository.findByConversationId(testConversationId1))
-    result1.child shouldBe testChild1
+    result1.notification shouldBe notificationRequest1
     result1._id shouldBe testObjectId1
 
     val result2 = await(repository.findByConversationId(testConversationId2))
-    result2.child shouldBe testChild2
+    result2.notification shouldBe notificationRequest2
     result2._id shouldBe testObjectId2
 
     val result3 = await(repository.findByConversationId(testConversationId3))
-    result3.child shouldBe testChild3
+    result3.notification shouldBe notificationRequest3
     result3._id shouldBe testObjectId3
   }
 
@@ -157,7 +157,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
     val result1 = await(repository.findAny)
     //TODO fix date generation above otherwise this will sometimes find another notification
-    result1.child shouldBe testChild1
+    result1.notification shouldBe notificationRequest1
     result1._id shouldBe testObjectId1
   }
 
