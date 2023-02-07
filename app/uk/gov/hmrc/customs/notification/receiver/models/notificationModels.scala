@@ -46,7 +46,7 @@ case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object CsId {
-  implicit val clientSubscriptionIdJF = new Format[CsId] {
+  implicit val format = new Format[CsId] {
     def writes(csid: CsId): JsString = JsString(csid.id.toString)
     def reads(json: JsValue): JsResult[CsId] = json match {
       case JsNull => JsError()
@@ -89,37 +89,19 @@ case class TestX(
                   _id: ObjectId
                 )
 object TestX{
-  //implicit val format: Format[TestX] = Json.format[TestX]
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-//  implicit val objectIdWrites: Writes[ObjectId] = MongoFormats.objectIdWrites
-//  implicit val objectIdReads: Reads[ObjectId] = MongoFormats.objectIdReads
-  //implicit val format: Format[TestX] = Json.format[TestX]
   implicit val format: Format[TestX] = (
       (__ \ "child").format[TestChild] and
       (__ \ "timeReceived").format[String] and
       (__ \ "_id").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
-
-
-//  implicit val format: Format[TestX] = Format(reads, writes)
-//  implicit val reads: Reads[TestX] = (
-//      (JsPath \ "id1").read[String] and
-//      (JsPath \ "value").read[String]
-//    ) (TestX.apply _)
-//
-//
-//  implicit val writes: Writes[TestX] = (
-//      (JsPath \ "id1").write[String] and
-//      (JsPath \ "value").write[String]
-//    ) (unlift(TestX.unapply))
 }
 
-case class TestChild(csid: String, conversationId: String, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
+case class TestChild(csid: CsId, conversationId: String, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
 
 object TestChild{
-  //implicit val format: Format[TestChild] = Json.format[TestChild]
   implicit val format: Format[TestChild] = (
-    (__ \ "csid").format[String] and
+    (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[String] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[String] and

@@ -29,12 +29,14 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.ItSpec
-import uk.gov.hmrc.customs.notification.receiver.models.{TestChild, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, TestChild, TestX}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import util.{UnitSpec, WireMockSupport}
 import util.TestData._
 
+import java.util.UUID
 import scala.collection.immutable.Seq
+import scala.concurrent.Future
 
 class NotificationRequestRecordRepoSpec extends ItSpec{
   private def collectionSize: Int = {
@@ -42,67 +44,74 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     repository.countAllNotifications().futureValue
   }
 
-    "count should be 0 with an empty repo" in {
-      collectionSize shouldBe 0
-    }
+  private def upsertTestData: Future[Unit] = {
+    await(repository.upsertByCsid(CsidOne, "a", "1"))
+    await(repository.upsertByCsid(CsidTwo, "b", "2"))
+    await(repository.upsertByCsid(CsidThree, "c", "3"))
+    Future.successful()
+  }
 
-//  "ensure indexes are created" in {
-//    repository.dropDb().futureValue
-//    repository.ensureIndexes.futureValue
-//    println(repository.collectionName)
-//    println(repository.collection.listIndexes().toFuture().futureValue.map(x => x))
-//    repository.collection.listIndexes().toFuture().futureValue.size shouldBe 3
-//  }
+  "count should be 0 with an empty repo" in {
+    collectionSize shouldBe 0
+  }
+
+  val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
+  val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
+  val CsidThree: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
+  val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
+  val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
+  val ConversationIdThree: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
 
   "successfully save multiple notifications" in {
-    await(repository.upsertByCsid("A","a", "1"))
-    await(repository.upsertByCsid("B", "b", "2"))
-    await(repository.upsertByCsid("C", "c", "3"))
+    await(upsertTestData)
 
     collectionSize shouldBe 3
   }
 
   "successfully find a specific notification by id1" in {
-    await(repository.upsertByCsid("A", "a", "1"))
-    await(repository.upsertByCsid("B", "b", "2"))
-    await(repository.upsertByCsid("C", "c", "3"))
+    await(upsertTestData)
 
-    val findResult = await(repository.findByCsid("A"))
+    val findResult = await(repository.findByCsid(CsidOne))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild("A", "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
 
-    val findResult2 = await(repository.findByCsid("C"))
+    val findResult2 = await(repository.findByCsid(CsidThree))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild("C", "c", "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, "c", "AHT", "OCH", "XPL")
   }
 
   "successfully find a specific notification by id2" in {
-    await(repository.upsertByCsid("A", "a", "1"))
-    await(repository.upsertByCsid("B", "b", "2"))
-    await(repository.upsertByCsid("C", "c", "3"))
+    await(upsertTestData)
 
     val findResult = await(repository.findByConversationId("a"))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild("A", "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
 
     val findResult2 = await(repository.findByConversationId("c"))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild("C", "c", "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, "c", "AHT", "OCH", "XPL")
   }
 
   "successfully find a random notification" in {
-    await(repository.upsertByCsid("A", "a", "1"))
-    await(repository.upsertByCsid("B", "b", "2"))
-    await(repository.upsertByCsid("C", "c", "3"))
+    await(upsertTestData)
+
     val findResult = await(repository.findAny)
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild("A", "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
   }
+
+  //  "ensure indexes are created" in {
+  //    repository.dropDb().futureValue
+  //    repository.ensureIndexes.futureValue
+  //    println(repository.collectionName)
+  //    println(repository.collection.listIndexes().toFuture().futureValue.map(x => x))
+  //    repository.collection.listIndexes().toFuture().futureValue.size shouldBe 3
+  //  }
 
 //    "successfully save a single notification" in {
 //  "successfully find a random notification" in {

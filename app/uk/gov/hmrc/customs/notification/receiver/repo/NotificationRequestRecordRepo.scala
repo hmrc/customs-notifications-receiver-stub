@@ -47,7 +47,8 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     collectionName = "notifications",
     domainFormat = TestX.format,
     extraCodecs = Seq(
-      Codecs.playFormatCodec(TestChild.format)
+      Codecs.playFormatCodec(TestChild.format),
+      Codecs.playFormatCodec(CsId.format)
     ),
     indexes = Seq(
       IndexModel(ascending("child.csid")),
@@ -67,7 +68,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 //          .unique(false)))
   ) {
 
-  def upsertByCsid(csid: String, conversationId: String, timeReceived: String): Future[Unit] = {
+  def upsertByCsid(csid: CsId, conversationId: String, timeReceived: String): Future[Unit] = {
     val filter: Bson = equal("child.csid", csid)
     val dataObject: TestX = TestX(
       child = TestChild(
@@ -85,7 +86,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
   }
 
-  def findByCsid(csid: String): Future[TestX] = {
+  def findByCsid(csid: CsId): Future[TestX] = {
     val filter: Bson = equal("child.csid", csid)
     val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
