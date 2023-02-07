@@ -101,10 +101,6 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     _id = testObjectId3)
 
   private def upsertTestData: Future[Unit] = {
-//    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1", testHeaders1, testObjectId1))
-//    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2", testHeaders2, testObjectId2))
-//    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3", testHeaders3, testObjectId3))
-//    Future.successful()
     await(repository.upsertNotificationRequestRecordByCsId(testX1))
     await(repository.upsertNotificationRequestRecordByCsId(testX2))
     await(repository.upsertNotificationRequestRecordByCsId(testX3))

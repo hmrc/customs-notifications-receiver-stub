@@ -52,10 +52,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       Codecs.playFormatCodec(CsId.format),
       Codecs.playFormatCodec(ConversationId.format)
     ),
-//    indexes = Seq(
-//      IndexModel(ascending("child.csid")),
-//      IndexModel(ascending("child.conversationId"))
-//    )
     indexes = Seq(
       IndexModel(
         compoundIndex(ascending("child.csid"), descending("timeReceived")),
@@ -82,25 +78,18 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 
   def findByCsid(csid: CsId): Future[TestX] = {
     val filter: Bson = equal("child.csid", csid)
-    val x: FindObservable[TestX] = collection.find(filter)
-    val y: Future[Seq[TestX]] = x.toFuture()
-    val z: Future[TestX] = y.map(_.toList.head)
-    z
+
+    collection.find(filter).toFuture().map(_.toList.head)
   }
 
   def findByConversationId(conversationId: ConversationId): Future[TestX] = {
     val filter: Bson = equal("child.conversationId", conversationId)
-    val x: FindObservable[TestX] = collection.find(filter)
-    val y: Future[Seq[TestX]] = x.toFuture()
-    val z: Future[TestX] = y.map(_.toList.head)
-    z
+
+    collection.find(filter).toFuture().map(_.toList.head)
   }
 
   def findAny: Future[TestX] = {
-    val x: FindObservable[TestX] = collection.find()
-    val y: Future[Seq[TestX]] = x.toFuture()
-    val z: Future[TestX] = y.map(_.toList.head)
-    z
+    collection.find().toFuture().map(_.toList.head)
   }
 
 
