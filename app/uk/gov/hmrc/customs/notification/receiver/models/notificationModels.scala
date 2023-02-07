@@ -86,7 +86,7 @@ object NotificationRequest {
 case class TestX(
                   id1: String,
                   id2: String,
-                  value: String,
+                  timeReceived: String,
                   child: TestChild,
                   _id: ObjectId
                 )
@@ -99,7 +99,7 @@ object TestX{
   implicit val format: Format[TestX] = (
     (__ \ "id1").format[String] and
       (__ \ "id2").format[String] and
-      (__ \ "value").format[String] and
+      (__ \ "timeReceived").format[String] and
       (__ \ "child").format[TestChild] and
       (__ \ "_id").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
