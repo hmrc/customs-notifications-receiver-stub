@@ -17,11 +17,12 @@
 package uk.gov.hmrc.customs.notification.receiver.models
 
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 
 import java.util.UUID
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
 
 case class Header(name: String, value: String)
 
@@ -83,24 +84,26 @@ object NotificationRequest {
     )(unlift(NotificationRequest.unapply))
 }
 
-case class TestX(
-                  child: TestChild,
-                  timeReceived: String,
-                  _id: ObjectId
-                )
+case class TestX(child: TestChild,
+                 timeReceived: DateTime,
+                 _id: ObjectId)
 object TestX{
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val dateTimeFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
   implicit val format: Format[TestX] = (
       (__ \ "child").format[TestChild] and
-      (__ \ "timeReceived").format[String] and
+      (__ \ "timeReceived").format[DateTime] and
       (__ \ "_id").format[ObjectId]
   )(TestX.apply, unlift(TestX.unapply))
 }
 
-case class TestChild(csid: CsId, conversationId: ConversationId, authHeaderToken: String, outboundCallHeaders: Seq[Header], xmlPayload: String)
+case class TestChild(csid: CsId,
+                     conversationId: ConversationId,
+                     authHeaderToken: String,
+                     outboundCallHeaders: Seq[Header],
+                     xmlPayload: String)
 
 object TestChild{
-  implicit val headerFormat: Format[Header] = Json.format[Header]
   implicit val format: Format[TestChild] = (
     (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[ConversationId] and

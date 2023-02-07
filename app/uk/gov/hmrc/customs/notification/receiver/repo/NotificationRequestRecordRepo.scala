@@ -17,6 +17,7 @@
 package uk.gov.hmrc.customs.notification.receiver.repo
 
 import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import org.mongodb.scala.FindObservable
 import org.mongodb.scala.model.{FindOneAndReplaceOptions, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReplaceOptions, Updates}
 import org.mongodb.scala.model.Indexes.compoundIndex
@@ -78,7 +79,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
         authHeaderToken = "AHT",
         outboundCallHeaders = outboundCallHeaders,
         xmlPayload = "XPL"),
-      timeReceived = timeReceived,
+      timeReceived = DateTime.now().toDateTimeISO,
       _id = new ObjectId())
 
     collection.findOneAndReplace(
