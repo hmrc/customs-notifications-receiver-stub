@@ -20,7 +20,7 @@ import org.bson.types.ObjectId
 import org.mongodb.scala.FindObservable
 import org.mongodb.scala.model.{FindOneAndReplaceOptions, FindOneAndUpdateOptions, IndexModel, IndexOptions, ReplaceOptions, Updates}
 import org.mongodb.scala.model.Indexes.compoundIndex
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord, TestChild, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord, TestChild, TestX}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import org.mongodb.scala.model.Indexes.{ascending, descending}
@@ -69,14 +69,14 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 //          .unique(false)))
   ) {
 
-  def upsertByCsid(csid: CsId, conversationId: ConversationId, timeReceived: String): Future[Unit] = {
+  def upsertByCsid(csid: CsId, conversationId: ConversationId, timeReceived: String, outboundCallHeaders: Seq[Header]): Future[Unit] = {
     val filter: Bson = equal("child.csid", csid)
     val dataObject: TestX = TestX(
       child = TestChild(
         csid = csid,
         conversationId = conversationId,
         authHeaderToken = "AHT",
-        outboundCallHeaders = "OCH",
+        outboundCallHeaders = outboundCallHeaders,
         xmlPayload = "XPL"),
       timeReceived = timeReceived,
       _id = new ObjectId())

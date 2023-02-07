@@ -29,7 +29,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.ItSpec
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, TestChild, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, TestChild, TestX}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import util.{UnitSpec, WireMockSupport}
 import util.TestData._
@@ -50,11 +50,20 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
   val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
   val ConversationIdThree: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
+  val testHeader1: Header = Header(name = "testHeader1", value = "value1")
+  val testHeader2: Header = Header(name = "testHeader2", value = "value2")
+  val testHeader3: Header = Header(name = "testHeader3", value = "value3")
+  val testHeader4: Header = Header(name = "testHeader4", value = "value4")
+  val testHeader5: Header = Header(name = "testHeader5", value = "value5")
+  val testHeader6: Header = Header(name = "testHeader6", value = "value6")
+  val testHeaders1: Seq[Header] = Seq(testHeader1, testHeader2)
+  val testHeaders2: Seq[Header] = Seq(testHeader3, testHeader4)
+  val testHeaders3: Seq[Header] = Seq(testHeader5, testHeader6)
 
   private def upsertTestData: Future[Unit] = {
-    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1"))
-    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2"))
-    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3"))
+    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1", testHeaders1))
+    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2", testHeaders2))
+    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3", testHeaders3))
     Future.successful()
   }
 
@@ -74,12 +83,12 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     val findResult = await(repository.findByCsid(CsidOne))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
 
     val findResult2 = await(repository.findByCsid(CsidThree))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", testHeaders3, "XPL")
   }
 
   "successfully find a specific notification by id2" in {
@@ -88,12 +97,12 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     val findResult = await(repository.findByConversationId(ConversationIdOne))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
 
     val findResult2 = await(repository.findByConversationId(ConversationIdThree))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", testHeaders3, "XPL")
   }
 
   "successfully find a random notification" in {
@@ -102,7 +111,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     val findResult = await(repository.findAny)
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", testHeaders1, "XPL")
   }
 
   //  "ensure indexes are created" in {

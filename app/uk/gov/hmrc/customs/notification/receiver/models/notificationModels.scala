@@ -26,7 +26,7 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 case class Header(name: String, value: String)
 
 object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+  implicit val format: Format[Header] = Json.format[Header]
 }
 
 case class ConversationId(id: UUID) extends AnyVal {
@@ -97,14 +97,15 @@ object TestX{
   )(TestX.apply, unlift(TestX.unapply))
 }
 
-case class TestChild(csid: CsId, conversationId: ConversationId, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
+case class TestChild(csid: CsId, conversationId: ConversationId, authHeaderToken: String, outboundCallHeaders: Seq[Header], xmlPayload: String)
 
 object TestChild{
+  implicit val headerFormat: Format[Header] = Json.format[Header]
   implicit val format: Format[TestChild] = (
     (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
-    (__ \ "outboundCallHeaders").format[String] and
+    (__ \ "outboundCallHeaders").format[Seq[Header]] and
     (__ \ "xmlPayload").format[String]
     )(TestChild.apply, unlift(TestChild.unapply))
 }
