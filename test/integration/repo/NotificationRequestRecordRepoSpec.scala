@@ -44,23 +44,23 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     repository.countAllNotifications().futureValue
   }
 
-  private def upsertTestData: Future[Unit] = {
-    await(repository.upsertByCsid(CsidOne, "a", "1"))
-    await(repository.upsertByCsid(CsidTwo, "b", "2"))
-    await(repository.upsertByCsid(CsidThree, "c", "3"))
-    Future.successful()
-  }
-
-  "count should be 0 with an empty repo" in {
-    collectionSize shouldBe 0
-  }
-
   val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
   val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
   val CsidThree: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
   val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
   val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
   val ConversationIdThree: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
+
+  private def upsertTestData: Future[Unit] = {
+    await(repository.upsertByCsid(CsidOne, ConversationIdOne, "1"))
+    await(repository.upsertByCsid(CsidTwo, ConversationIdTwo, "2"))
+    await(repository.upsertByCsid(CsidThree, ConversationIdThree, "3"))
+    Future.successful()
+  }
+
+  "count should be 0 with an empty repo" in {
+    collectionSize shouldBe 0
+  }
 
   "successfully save multiple notifications" in {
     await(upsertTestData)
@@ -74,26 +74,26 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     val findResult = await(repository.findByCsid(CsidOne))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
 
     val findResult2 = await(repository.findByCsid(CsidThree))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, "c", "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", "OCH", "XPL")
   }
 
   "successfully find a specific notification by id2" in {
     await(upsertTestData)
 
-    val findResult = await(repository.findByConversationId("a"))
+    val findResult = await(repository.findByConversationId(ConversationIdOne))
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
 
-    val findResult2 = await(repository.findByConversationId("c"))
+    val findResult2 = await(repository.findByConversationId(ConversationIdThree))
 
     findResult2.timeReceived shouldBe "3"
-    findResult2.child shouldBe TestChild(CsidThree, "c", "AHT", "OCH", "XPL")
+    findResult2.child shouldBe TestChild(CsidThree, ConversationIdThree, "AHT", "OCH", "XPL")
   }
 
   "successfully find a random notification" in {
@@ -102,7 +102,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     val findResult = await(repository.findAny)
 
     findResult.timeReceived shouldBe "1"
-    findResult.child shouldBe TestChild(CsidOne, "a", "AHT", "OCH", "XPL")
+    findResult.child shouldBe TestChild(CsidOne, ConversationIdOne, "AHT", "OCH", "XPL")
   }
 
   //  "ensure indexes are created" in {

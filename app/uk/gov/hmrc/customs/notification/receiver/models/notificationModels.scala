@@ -33,7 +33,7 @@ case class ConversationId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object ConversationId {
-  implicit val conversationIdJF = new Format[ConversationId] {
+  implicit val format = new Format[ConversationId] {
     def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
     def reads(json: JsValue): JsResult[ConversationId] = json match {
       case JsNull => JsError()
@@ -97,12 +97,12 @@ object TestX{
   )(TestX.apply, unlift(TestX.unapply))
 }
 
-case class TestChild(csid: CsId, conversationId: String, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
+case class TestChild(csid: CsId, conversationId: ConversationId, authHeaderToken: String, outboundCallHeaders: String, xmlPayload: String)
 
 object TestChild{
   implicit val format: Format[TestChild] = (
     (__ \ "csid").format[CsId] and
-    (__ \ "conversationId").format[String] and
+    (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[String] and
     (__ \ "xmlPayload").format[String]
