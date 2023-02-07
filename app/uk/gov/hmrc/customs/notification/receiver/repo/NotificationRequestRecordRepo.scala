@@ -67,15 +67,15 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 //          .unique(false)))
   ) {
 
-  def upsertById1(id1: String, id2: String, value: String): Future[Unit] = {
-    val filter: Bson = equal("child.csid", id1)
+  def upsertByCsid(csid: String, conversationId: String, value: String): Future[Unit] = {
+    val filter: Bson = equal("child.csid", csid)
     val dataObject: TestX = TestX(
-      id1 = id1,
-      id2 = id2,
+      id1 = csid,
+      id2 = conversationId,
       value = value,
       child = TestChild(
-        csid = id1,
-        conversationId = id2,
+        csid = csid,
+        conversationId = conversationId,
         childValue = "LOL"),
       _id = new ObjectId())
 
@@ -85,16 +85,16 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
       options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
   }
 
-  def findById1(id1: String): Future[TestX] = {
-    val filter: Bson = equal("child.csid", id1)
+  def findByCsid(csid: String): Future[TestX] = {
+    val filter: Bson = equal("child.csid", csid)
     val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
     z
   }
 
-  def findById2(id2: String): Future[TestX] = {
-    val filter: Bson = equal("child.conversationId", id2)
+  def findByConversationId(conversationId: String): Future[TestX] = {
+    val filter: Bson = equal("child.conversationId", conversationId)
     val x: FindObservable[TestX] = collection.find(filter)
     val y: Future[Seq[TestX]] = x.toFuture()
     val z: Future[TestX] = y.map(_.toList.head)
