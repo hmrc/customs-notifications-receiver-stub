@@ -55,8 +55,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 
   //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
   def upsertNotificationRequestRecordByCsId(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    val filter: Bson = equal("notification.csid", notificationRequestRecord.notification.csid)
-
+    val filter: Bson = buildCsIdFilter(notificationRequestRecord.notification.csId)
     collection.findOneAndReplace(
       filter = filter,
       replacement = notificationRequestRecord,

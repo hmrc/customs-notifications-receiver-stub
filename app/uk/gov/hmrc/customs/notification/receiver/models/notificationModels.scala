@@ -69,7 +69,7 @@ object NotificationRequestRecord{
   )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
 
-case class NotificationRequest(csid: CsId,
+case class NotificationRequest(csId: CsId,
                                conversationId: ConversationId,
                                authHeaderToken: String,
                                outboundCallHeaders: List[Header],

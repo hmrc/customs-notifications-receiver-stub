@@ -21,6 +21,6 @@ import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest
 object LoggingHelper {
 
   def logMsgPrefix(n: NotificationRequest): String =
-    s"[conversationId=${n.conversationId}][clientSubscriptionId=${n.csid}]"
+    s"[conversationId=${n.conversationId}][clientSubscriptionId=${n.csId}]"
 
 }

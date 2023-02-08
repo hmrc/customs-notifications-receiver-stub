@@ -35,7 +35,7 @@ class InMemoryPersistenceService {
 
   def notificationsByCsId(csid: CsId): Future[Seq[NotificationRequest]] = {
     Future.successful {
-      notifications.filter(n => n.csid == csid)
+      notifications.filter(n => n.csId == csid)
     }
   }
 
