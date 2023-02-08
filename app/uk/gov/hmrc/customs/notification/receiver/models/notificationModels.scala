@@ -16,21 +16,25 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import java.util.UUID
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 
+import java.util.UUID
 import play.api.libs.json._
+import play.api.libs.functional.syntax._
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
 
 case class Header(name: String, value: String)
 
 object Header{
-  implicit val formats: Format[Header] = Json.format[Header]
+  implicit val format: Format[Header] = Json.format[Header]
 }
 
 case class ConversationId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object ConversationId {
-  implicit val conversationIdJF = new Format[ConversationId] {
+  implicit val format = new Format[ConversationId] {
     def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
     def reads(json: JsValue): JsResult[ConversationId] = json match {
       case JsNull => JsError()
@@ -43,7 +47,7 @@ case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object CsId {
-  implicit val clientSubscriptionIdJF = new Format[CsId] {
+  implicit val format = new Format[CsId] {
     def writes(csid: CsId): JsString = JsString(csid.id.toString)
     def reads(json: JsValue): JsResult[CsId] = json match {
       case JsNull => JsError()
@@ -52,16 +56,32 @@ object CsId {
   }
 }
 
-case class NotificationRequest(
-  csid: CsId,
-  conversationId: ConversationId,
-  authHeaderToken: String,
-  outboundCallHeaders: Seq[Header],
-  xmlPayload: String
-)
-
-object NotificationRequest {
-  private implicit val headerFormats: Format[Header] = Json.format[Header]
-  implicit val formats: Format[NotificationRequest] = Json.format[NotificationRequest]
+case class NotificationRequestRecord(notification: NotificationRequest,
+                                     timeReceived: DateTime,
+                                    //This is never used in this service, but is required to keep the format correct
+                                     _id: ObjectId)
+object NotificationRequestRecord{
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+  implicit val dateTimeFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val format: Format[NotificationRequestRecord] = (
+      (__ \ "notification").format[NotificationRequest] and
+      (__ \ "timeReceived").format[DateTime] and
+      (__ \ "_id").format[ObjectId]
+  )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
 
+case class NotificationRequest(csId: CsId,
+                               conversationId: ConversationId,
+                               authHeaderToken: String,
+                               outboundCallHeaders: List[Header],
+                               xmlPayload: String)
+
+object NotificationRequest{
+  implicit val format: Format[NotificationRequest] = (
+    (__ \ "csid").format[CsId] and
+    (__ \ "conversationId").format[ConversationId] and
+    (__ \ "authHeaderToken").format[String] and
+    (__ \ "outboundCallHeaders").format[List[Header]] and
+    (__ \ "xmlPayload").format[String]
+    )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
+}
