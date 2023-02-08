@@ -17,6 +17,7 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
+
 import javax.inject.Singleton
 import com.google.inject.Inject
 import play.api.libs.json.Json
@@ -25,7 +26,7 @@ import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -41,84 +42,76 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
-    throw new RuntimeException()
-//    extractedHeadersRequest.body.asXml match {
-//      case Some(xmlPayload) =>
-//        val seqOfHeader: Seq[Header] = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
-//        val payload = xmlPayload.toString
-//        val notificationRequest: NotificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader, payload)
-//        logger.debug(s"Received Notification for :${notificationRequest.csid}\nheaders=\n$seqOfHeader\npayload=\n$payload")
-//        //repo.upsert(notificationRequest)
-//        repo.insert(notificationRequest)
-//        Future.successful(Ok(Json.toJson(notificationRequest)))
-//      case None =>
-//        logger.error("Invalid Xml")
-//        Future.successful(errorBadRequest("Invalid Xml").XmlResult)
-//    }
+    extractedHeadersRequest.body.asXml match {
+      case Some(xmlPayload) =>
+        val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
+        val payloadAsString = xmlPayload.toString
+        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
+        logger.debug(s"Received Notification for :${notificationRequest.csId}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString")
+        repo.insertNotificationRequestRecord(repo.buildNotificationRequestRecord(notificationRequest))
+        Future.successful(Ok(Json.toJson(notificationRequest)))
+      case None =>
+        logger.error("Invalid Xml")
+        Future.successful(errorBadRequest("Invalid Xml").XmlResult)
+    }
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
     logger.debug(s"Trying to get Notifications by CsId:$csid\nheaders=\n${request.headers.toSimpleMap}")
-    throw new RuntimeException()
-//    Try(UUID.fromString(csid)) match {
-//      case Success(uuid) =>
-//        for{
-//          //notificationRequestRecords: Seq[NotificationRequestRecord] <- repo.findNotificationsByCsId(CsId(uuid))
-//        } yield{
-//          val notificationRequests: Seq[NotificationRequest] = notificationRequestRecords.map(_.notification)
-//          logger.debug(s"Found Notifications for Csid $csid\n$notificationRequests")
-//          Ok(Json.toJson(notificationRequests))
-//        }
-//      case Failure(e) =>
-//        logger.error("Bad request", e)
-//        Future.successful(errorBadRequest(e.getMessage).JsonResult)
-//    }
+
+    Try(UUID.fromString(csid)) match {
+      case Success(uuid) =>
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByCsId(CsId(uuid))
+        eventuallyNotifications.map{seqNotifications =>
+          logger.debug(s"Found Notifications for Csid $csid\n$seqNotifications")
+          Ok(Json.toJson(seqNotifications))
+        }
+      case Failure(e) =>
+        logger.error("Bad request", e)
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
   }
 
   def retrieveNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { request =>
     logger.debug(s"Trying to get Notifications by ConversationId:$conversationId\nheaders=\n${request.headers.toSimpleMap}")
-    throw new RuntimeException()
-//    Try(UUID.fromString(conversationId)) match {
-//      case Success(uuid) =>
-//        for{
-//          notificationRequestRecords: Seq[NotificationRequestRecord] <- repo.findNotificationsByConversationId(ConversationId(uuid))
-//        } yield{
-//          val notificationRequests: Seq[NotificationRequest] = notificationRequestRecords.map(_.notification)
-//          logger.debug(s"Found Notifications for ConversationId $conversationId\n$notificationRequests")
-//          Ok(Json.toJson(notificationRequests))
-//        }
-//      case Failure(e) =>
-//        logger.error("Bad request", e)
-//        Future.successful(errorBadRequest(e.getMessage).JsonResult)
-//    }
+
+    Try(UUID.fromString(conversationId)) match {
+      case Success(uuid) =>
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByConversationId(ConversationId(uuid))
+        eventuallyNotifications.map{seqNotifications =>
+          logger.debug(s"Found Notifications for ConversationId $conversationId\n$seqNotifications")
+          Ok(Json.toJson(seqNotifications))
+        }
+      case Failure(e) =>
+        logger.error("Bad request", e)
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
   }
 
   def countNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
-//    Try(UUID.fromString(csid)) match {
-//      case Success(csidUuid) =>
-//        repo.countNotificationsByCsId(CsId(csidUuid)).map{ count =>
-//          logger.debug(s"About to get counts by CsId:$csid count=$count")
-//          Ok(Json.parse(s"""{"count": "$count"}"""))
-//        }
-//      case Failure(e) =>
-//        logger.error(s"Invalid csid UUID $csid")
-//        Future.successful(errorBadRequest(e.getMessage).JsonResult)
-//    }
-    throw new RuntimeException()
+    Try(UUID.fromString(csid)) match {
+      case Success(csidUuid) =>
+        repo.countNotificationsByCsId(CsId(csidUuid)).map{ count =>
+          logger.debug(s"About to get counts by CsId:$csid count=$count")
+          Ok(Json.parse(s"""{"count": "$count"}"""))
+        }
+      case Failure(e) =>
+        logger.error(s"Invalid csid UUID $csid")
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
   }
 
   def countNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { _ =>
-//    Try(UUID.fromString(conversationId)) match {
-//      case Success(csidUuid) =>
-//        repo.countNotificationsByConversationId(ConversationId(csidUuid)).map{ count =>
-//          logger.debug(s"About to get counts by conversationId:$conversationId count=$count")
-//          Ok(Json.parse(s"""{"count": "$count"}"""))
-//        }
-//      case Failure(e) =>
-//        logger.error(s"Invalid csid UUID $conversationId")
-//        Future.successful(errorBadRequest(e.getMessage).JsonResult)
-//    }
-    throw new RuntimeException()
+    Try(UUID.fromString(conversationId)) match {
+      case Success(csidUuid) =>
+        repo.countNotificationsByConversationId(ConversationId(csidUuid)).map{ count =>
+          logger.debug(s"About to get counts by conversationId:$conversationId count=$count")
+          Ok(Json.parse(s"""{"count": "$count"}"""))
+        }
+      case Failure(e) =>
+        logger.error(s"Invalid csid UUID $conversationId")
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
   }
 
   def countAllNotifications: Action[AnyContent] = Action.async { _ =>

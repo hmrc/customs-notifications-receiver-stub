@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.model.Indexes.compoundIndex
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
@@ -25,6 +27,7 @@ import org.mongodb.scala.model.Indexes.{ascending, descending}
 import org.mongodb.scala.bson.conversions
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.equal
+
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
 
@@ -52,6 +55,10 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
           .name("conversationId-timeReceived-Index")
           .unique(false)))
   ) {
+
+  def buildNotificationRequestRecord(notificationRequest: NotificationRequest): NotificationRequestRecord = {
+    NotificationRequestRecord(notification = notificationRequest, timeReceived = DateTime.now().toDateTimeISO, _id = new ObjectId())
+  }
 
   //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
@@ -122,5 +129,14 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
 
   def findAny: Future[NotificationRequestRecord] = {
     collection.find().toFuture().map(_.toList.head)
+  }
+
+  def findAnyAsNotificationRequest: Future[Seq[NotificationRequest]] = {
+    for {
+      notificationRequestRecords <- collection.find().toFuture()
+    } yield {
+      val sortedNotificationRequestRecords = sortNotificationRequestRecordsByDateAscending(notificationRequestRecords)
+      sortedNotificationRequestRecords.map(_.notification)
+    }
   }
 }
