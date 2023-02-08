@@ -30,7 +30,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.ItSpec
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, TestX}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import util.{UnitSpec, WireMockSupport}
 import util.TestData._
@@ -84,26 +84,26 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     authHeaderToken = testAuthHeaderToken,
     outboundCallHeaders = testHeaders3,
     xmlPayload = testXmlPayload)
-  val testX1: TestX = TestX(
+  val notificationRequestRecord1: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest1,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId1)
-  val testX2: TestX = TestX(
+  val notificationRequestRecord2: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest2,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId2)
-  val testX3: TestX = TestX(
+  val notificationRequestRecord3: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest3,
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = testObjectId3)
 
   private def upsertTestData: Future[Unit] = {
-    await(repository.upsertNotificationRequestRecordByCsId(testX1))
-    await(repository.upsertNotificationRequestRecordByCsId(testX2))
-    await(repository.upsertNotificationRequestRecordByCsId(testX3))
+    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord1))
+    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord2))
+    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord3))
     //TODO remove below
     Future.successful()
   }
@@ -121,17 +121,17 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   "successfully find a specific notification by id1" in {
     await(upsertTestData)
 
-    val result1 = await(repository.findByCsid(csId1))
+    val result1 = await(repository.findByCsId(csId1))
     result1.notification shouldBe notificationRequest1
     //TODO fix time issue below for all
     //result1.timeReceived shouldBe testX1.timeReceived
     result1._id shouldBe testObjectId1
 
-    val result2 = await(repository.findByCsid(csId2))
+    val result2 = await(repository.findByCsId(csId2))
     result2.notification shouldBe notificationRequest2
     result2._id shouldBe testObjectId2
 
-    val result3 = await(repository.findByCsid(csId3))
+    val result3 = await(repository.findByCsId(csId3))
     result3.notification shouldBe notificationRequest3
     result3._id shouldBe testObjectId3
   }
@@ -159,6 +159,20 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     //TODO fix date generation above otherwise this will sometimes find another notification
     result1.notification shouldBe notificationRequest1
     result1._id shouldBe testObjectId1
+  }
+
+  "count notifications by CsId" in {
+    await(upsertTestData)
+
+    val result = await(repository.countNotificationsByCsId(csId1))
+    result shouldBe 1
+  }
+
+  "count notifications by ConversationId" in {
+    await(upsertTestData)
+
+    val result = await(repository.countNotificationsByConversationId(testConversationId1))
+    result shouldBe 1
   }
 
   //  "ensure indexes are created" in {

@@ -56,17 +56,17 @@ object CsId {
   }
 }
 
-case class TestX(notification: NotificationRequest,
-                 timeReceived: DateTime,
-                 _id: ObjectId)
-object TestX{
+case class NotificationRequestRecord(notification: NotificationRequest,
+                                     timeReceived: DateTime,
+                                     _id: ObjectId)
+object NotificationRequestRecord{
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val dateTimeFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
-  implicit val format: Format[TestX] = (
+  implicit val format: Format[NotificationRequestRecord] = (
       (__ \ "notification").format[NotificationRequest] and
       (__ \ "timeReceived").format[DateTime] and
       (__ \ "_id").format[ObjectId]
-  )(TestX.apply, unlift(TestX.unapply))
+  )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
 
 case class NotificationRequest(csid: CsId,
