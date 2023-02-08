@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ class LoggingHelperSpec extends UnitSpec {
 
   "LoggingHelper" should {
     "format log message" in {
-      LoggingHelper.logMsgPrefix(NotificationRequestOne) shouldBe "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232]"
+      LoggingHelper.logMsgPrefix(notificationRequest1) shouldBe "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232]"
     }
   }
-
 }
