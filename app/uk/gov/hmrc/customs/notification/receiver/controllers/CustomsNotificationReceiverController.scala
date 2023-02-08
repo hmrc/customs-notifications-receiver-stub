@@ -27,7 +27,7 @@ import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest}
-import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
+import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +37,7 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
                                                       headerValidationAction: HeaderValidationAction,
-                                                      persistenceService: NotificationRepo,
+                                                      repo: NotificationRequestRecordRepo,
                                                       cc: ControllerComponents)
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
 
@@ -46,9 +46,9 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
       case Some(xmlPayload) =>
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
-        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader, payloadAsString)
-        logger.debug(s"Received Notification for :${notificationRequest.csid}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString")
-        persistenceService.persist(notificationRequest)
+        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
+        logger.debug(s"Received Notification for :${notificationRequest.csId}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString")
+        repo.insertNotificationRequestRecord(repo.buildNotificationRequestRecord(notificationRequest))
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
         logger.error("Invalid Xml")
@@ -57,11 +57,11 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
-
     logger.debug(s"Trying to get Notifications by CsId:$csid\nheaders=\n${request.headers.toSimpleMap}")
+
     Try(UUID.fromString(csid)) match {
       case Success(uuid) =>
-        val eventuallyNotifications: Future[Seq[NotificationRequest]] = persistenceService.notificationsByCsId(CsId(uuid))
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByCsId(CsId(uuid))
         eventuallyNotifications.map{seqNotifications =>
           logger.debug(s"Found Notifications for Csid $csid\n$seqNotifications")
           Ok(Json.toJson(seqNotifications))
@@ -73,11 +73,11 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { request =>
-
     logger.debug(s"Trying to get Notifications by ConversationId:$conversationId\nheaders=\n${request.headers.toSimpleMap}")
+
     Try(UUID.fromString(conversationId)) match {
       case Success(uuid) =>
-        val eventuallyNotifications: Future[Seq[NotificationRequest]] = persistenceService.notificationsByConversationId(ConversationId(uuid))
+        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByConversationId(ConversationId(uuid))
         eventuallyNotifications.map{seqNotifications =>
           logger.debug(s"Found Notifications for ConversationId $conversationId\n$seqNotifications")
           Ok(Json.toJson(seqNotifications))
@@ -91,7 +91,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   def countNotificationByCsId(csid: String): Action[AnyContent] = Action.async { _ =>
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
-        persistenceService.notificationCountByCsId(CsId(csidUuid)).map{count =>
+        repo.countNotificationsByCsId(CsId(csidUuid)).map{ count =>
           logger.debug(s"About to get counts by CsId:$csid count=$count")
           Ok(Json.parse(s"""{"count": "$count"}"""))
         }
@@ -104,7 +104,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   def countNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { _ =>
     Try(UUID.fromString(conversationId)) match {
       case Success(csidUuid) =>
-        persistenceService.notificationCountByConversationId(ConversationId(csidUuid)).map{count =>
+        repo.countNotificationsByConversationId(ConversationId(csidUuid)).map{ count =>
           logger.debug(s"About to get counts by conversationId:$conversationId count=$count")
           Ok(Json.parse(s"""{"count": "$count"}"""))
         }
@@ -115,7 +115,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def countAllNotifications: Action[AnyContent] = Action.async { _ =>
-    persistenceService.notificationCount.map{ count =>
+    repo.countAllNotifications().map{ count =>
       logger.debug(s"About to get count of all notifications")
       Ok(Json.parse(s"""{"count": "$count"}"""))
     }
@@ -123,7 +123,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
 
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>
     logger.debug("Clearing down Notifications")
-    persistenceService.clearAll()
+    repo.dropDb()
     Future.successful(NoContent)
   }
 
