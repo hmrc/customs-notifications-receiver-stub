@@ -35,26 +35,31 @@ class CustomsNotificationReceiverControllerSpec extends ItSpec {
       status(await(insert1Result)) shouldBe OK
       contentType(insert1Result) shouldBe Some("application/json")
       contentAsJson(insert1Result) shouldBe notificationRequestJson(csId1, conversationId1)
+      Thread.sleep(100)
 
       val insert2Result: Future[Result] = insertNotificationRequestRecord(csId2, conversationId2)
       status(await(insert2Result)) shouldBe OK
       contentType(insert2Result) shouldBe Some("application/json")
       contentAsJson(insert2Result) shouldBe notificationRequestJson(csId2, conversationId2)
+      Thread.sleep(100)
 
       val insert3Result: Future[Result] = insertNotificationRequestRecord(csId1, conversationId2)
       status(await(insert3Result)) shouldBe OK
       contentType(insert3Result) shouldBe Some("application/json")
       contentAsJson(insert3Result) shouldBe notificationRequestJson(csId1, conversationId2)
+      Thread.sleep(100)
 
       val countAllResult = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/totalcount")).get
       status(await(countAllResult)) shouldBe OK
       contentType(countAllResult) shouldBe Some("application/json")
       contentAsJson(countAllResult) shouldBe Json.parse("{\"count\": \"3\"}")
+      Thread.sleep(100)
 
       val countByCsIdResult = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/csid/" + csId1)).get
       status(await(countByCsIdResult)) shouldBe OK
       contentType(countByCsIdResult) shouldBe Some("application/json")
       contentAsJson(countByCsIdResult) shouldBe Json.parse("{\"count\": \"2\"}")
+      Thread.sleep(100)
 
       val csIdSearch1Result: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + csId1)).get
       status(await(csIdSearch1Result)) shouldBe OK
@@ -62,12 +67,14 @@ class CustomsNotificationReceiverControllerSpec extends ItSpec {
       contentAsJson(csIdSearch1Result) shouldBe notificationsResultJson(
         notificationRequest(csId1, conversationId1),
         notificationRequest(csId1, conversationId2))
+      Thread.sleep(100)
 
       val csIdSearch2Result: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/csid/" + csId2)).get
       status(await(csIdSearch2Result)) shouldBe OK
       contentType(csIdSearch2Result) shouldBe Some("application/json")
       contentAsJson(csIdSearch2Result) shouldBe notificationsResultJson(
         notificationRequest(csId2, conversationId2))
+      Thread.sleep(100)
     }
   }
 
@@ -86,26 +93,31 @@ class CustomsNotificationReceiverControllerSpec extends ItSpec {
       status(await(insert1Result)) shouldBe OK
       contentType(insert1Result) shouldBe Some("application/json")
       contentAsJson(insert1Result) shouldBe notificationRequestJson(csId1, conversationId1)
+      Thread.sleep(100)
 
       val insert2Result: Future[Result] = insertNotificationRequestRecord(csId2, conversationId2)
       status(await(insert2Result)) shouldBe OK
       contentType(insert2Result) shouldBe Some("application/json")
       contentAsJson(insert2Result) shouldBe notificationRequestJson(csId2, conversationId2)
+      Thread.sleep(100)
 
       val insert3Result: Future[Result] = insertNotificationRequestRecord(csId2, conversationId1)
       status(await(insert3Result)) shouldBe OK
       contentType(insert3Result) shouldBe Some("application/json")
       contentAsJson(insert3Result) shouldBe notificationRequestJson(csId2, conversationId1)
+      Thread.sleep(100)
 
       val countAllResult = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/totalcount")).get
       status(await(countAllResult)) shouldBe OK
       contentType(countAllResult) shouldBe Some("application/json")
       contentAsJson(countAllResult) shouldBe Json.parse("{\"count\": \"3\"}")
+      Thread.sleep(100)
 
       val countByConversationIdResult = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/count/conversationid/" + conversationId1)).get
       status(await(countByConversationIdResult)) shouldBe OK
       contentType(countByConversationIdResult) shouldBe Some("application/json")
       contentAsJson(countByConversationIdResult) shouldBe Json.parse("{\"count\": \"2\"}")
+      Thread.sleep(100)
 
       val conversationIdSearch1Result: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/conversationid/" + conversationId1)).get
       status(await(conversationIdSearch1Result)) shouldBe OK
@@ -113,12 +125,14 @@ class CustomsNotificationReceiverControllerSpec extends ItSpec {
       contentAsJson(conversationIdSearch1Result) shouldBe notificationsResultJson(
         notificationRequest(csId1, conversationId1),
         notificationRequest(csId2, conversationId1))
+      Thread.sleep(100)
 
       val conversationIdSearch2Result: Future[Result] = route(app, FakeRequest(GET, "/customs-notifications-receiver-stub/pushnotifications/conversationid/" + conversationId2)).get
       status(await(conversationIdSearch2Result)) shouldBe OK
       contentType(conversationIdSearch2Result) shouldBe Some("application/json")
       contentAsJson(conversationIdSearch2Result) shouldBe notificationsResultJson(
         notificationRequest(csId2, conversationId2))
+      Thread.sleep(100)
     }
   }
 
