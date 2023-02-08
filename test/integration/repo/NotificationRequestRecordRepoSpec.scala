@@ -24,9 +24,9 @@ import scala.concurrent.Future
 class NotificationRequestRecordRepoSpec extends ItSpec{
 
   private def upsertTestData: Future[Unit] = {
-    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord1))
-    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord2))
-    await(repository.upsertNotificationRequestRecordByCsId(notificationRequestRecord3))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
     //TODO remove below
     Future.successful()
   }

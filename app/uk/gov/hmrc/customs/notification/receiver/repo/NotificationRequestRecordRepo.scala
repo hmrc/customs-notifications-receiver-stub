@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
-import org.mongodb.scala.model.{FindOneAndReplaceOptions, IndexModel, IndexOptions}
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.model.Indexes.compoundIndex
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -54,12 +54,8 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   ) {
 
   //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
-  def upsertNotificationRequestRecordByCsId(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    val filter: Bson = buildCsIdFilter(notificationRequestRecord.notification.csId)
-    collection.findOneAndReplace(
-      filter = filter,
-      replacement = notificationRequestRecord,
-      options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
+  def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
+    collection.insertOne(notificationRequestRecord).toFuture().map(_ => ())
   }
 
   def findByCsId(csId: CsId): Future[NotificationRequestRecord] = {
@@ -109,5 +105,14 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   //      thisRecord.timeReceived.getOrElse(throw new RuntimeException("Error(sortNotificationRequestRecordsByDateAscending): timeReceived(1) is missing"))
   //        .isBefore(nextRecord.timeReceived.getOrElse(throw new RuntimeException("Error(sortNotificationRequestRecordsByDateAscending): timeReceived(2) is missing")))
   //    )
+  //  }
+
+  //TODO delete this
+  //  def upsertNotificationRequestRecordByCsId(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
+  //    val filter: Bson = buildCsIdFilter(notificationRequestRecord.notification.csId)
+  //    collection.findOneAndReplace(
+  //      filter = filter,
+  //      replacement = notificationRequestRecord,
+  //      options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
   //  }
 }
