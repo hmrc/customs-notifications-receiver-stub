@@ -16,30 +16,77 @@
 
 package util
 
-import java.util.UUID
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 
+import java.util.UUID
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
 
 import scala.util.control.NonFatal
 import scala.xml._
 
 object TestData {
+  val csId1: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
+  val csId2: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
+  val csId3: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
+  val conversationId1: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
+  val conversationId2: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
+  val conversationId3: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
+  val header1: Header = Header(name = "testHeader1", value = "value1")
+  val header2: Header = Header(name = "testHeader2", value = "value2")
+  val header3: Header = Header(name = "testHeader3", value = "value3")
+  val header4: Header = Header(name = "testHeader4", value = "value4")
+  val header5: Header = Header(name = "testHeader5", value = "value5")
+  val header6: Header = Header(name = "testHeader6", value = "value6")
+  //TODO revert to seq?
+  val headers1: List[Header] = List(header1, header2)
+  val headers2: List[Header] = List(header3, header4)
+  val headers3: List[Header] = List(header5, header6)
+  lazy val objectId1: ObjectId = new ObjectId
+  lazy val objectId2: ObjectId = new ObjectId
+  lazy val objectId3: ObjectId = new ObjectId
+  lazy val authHeaderToken: String = "testAuthHeaderToken"
+  lazy val xmlPayload: String = "testXmlPayload"
+  lazy val notificationRequest1: NotificationRequest = NotificationRequest(
+    csid = csId1,
+    conversationId = conversationId1,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers1,
+    xmlPayload = xmlPayload)
+  lazy val notificationRequest2: NotificationRequest = NotificationRequest(
+    csid = csId2,
+    conversationId = conversationId2,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers2,
+    xmlPayload = xmlPayload)
+  lazy val notificationRequest3: NotificationRequest = NotificationRequest(
+    csid = csId3,
+    conversationId = conversationId3,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers3,
+    xmlPayload = xmlPayload)
+  val notificationRequestRecord1: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest1,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId1)
+  val notificationRequestRecord2: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest2,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId2)
+  val notificationRequestRecord3: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest3,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId3)
 
-  val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
-  val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
-  val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
-  val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
+  //TODO delete these?
   val HeaderOne: (String, String) = "h1" -> "v1"
   val HeaderTwo: (String, String) = "h2" -> "v2"
   val XmlPayload : NodeSeq = <stuff><moreXml>Stuff</moreXml></stuff>
-
-
   val AuthToken = "AUTH_TOKEN"
-  //TODO revert these to Seq
-  val NotificationRequestOne = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, List.empty, s"<foo>OneOfTwo</foo>")
-  val NotificationRequestOneTwo = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, List.empty, s"<foo>TwoOfTwo</foo>")
-  val NotificationRequestTwo = NotificationRequest(CsidTwo, ConversationIdTwo, AuthToken, List.empty, s"<foo>$CsidTwo</foo>")
 
   def notificationRequestJson(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
 

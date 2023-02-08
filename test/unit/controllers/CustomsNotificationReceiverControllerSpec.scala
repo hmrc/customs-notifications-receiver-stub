@@ -50,10 +50,10 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
 
   "CustomsNotificationReceiverController" should {
     val fakeRequestWithHeaders = FakeRequest().withHeaders(
-      AUTHORIZATION -> CsidOne.toString,
+      AUTHORIZATION -> csId1.toString,
       CONTENT_TYPE -> MimeTypes.XML,
       USER_AGENT -> "Customs Declaration Service",
-      CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+      CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId1.toString
     )
 
     "clear endpoint should call clearNotifications in Service" in new Setup {

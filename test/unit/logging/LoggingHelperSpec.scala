@@ -24,7 +24,7 @@ class LoggingHelperSpec extends UnitSpec {
 
   "LoggingHelper" should {
     "format log message" in {
-      LoggingHelper.logMsgPrefix(NotificationRequestOne) shouldBe "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232]"
+      LoggingHelper.logMsgPrefix(notificationRequest1) shouldBe "[conversationId=eaca01f9-ec3b-4ede-b263-61b626dde232][clientSubscriptionId=ffff01f9-ec3b-4ede-b263-61b626dde232]"
     }
   }
 

@@ -24,7 +24,7 @@ import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorContentType
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
-import util.TestData.ConversationIdOne
+import util.TestData.conversationId1
 import util.{TestData, UnitSpec}
 
 class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
@@ -35,11 +35,11 @@ class HeaderValidationActionSpec extends UnitSpec with MockitoSugar {
   "in happy path" should {
     "return 415 when CONTENT_TYPE header is invalid" in {
       val eitherResult: Either[Result, ExtractedHeadersRequest[AnyContentAsEmpty.type]] = await(headerValidationAction.refine(FakeRequest()
-        .withHeaders( AUTHORIZATION -> ("Basic " + TestData.CsidOne),
+        .withHeaders( AUTHORIZATION -> ("Basic " + TestData.csId1),
           CONTENT_TYPE -> "invalid",
           ACCEPT -> "application/xml",
           USER_AGENT -> "Customs Declaration Service",
-          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString)))
+          CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId1.toString)))
 
       eitherResult shouldBe Left(ErrorContentTypeHeaderInvalid.XmlResult)
     }
