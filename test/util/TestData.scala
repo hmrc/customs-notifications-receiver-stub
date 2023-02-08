@@ -46,6 +46,9 @@ object TestData {
   lazy val objectId1: ObjectId = new ObjectId
   lazy val objectId2: ObjectId = new ObjectId
   lazy val objectId3: ObjectId = new ObjectId
+  lazy val objectId4: ObjectId = new ObjectId
+  lazy val objectId5: ObjectId = new ObjectId
+  lazy val objectId6: ObjectId = new ObjectId
   lazy val authHeaderToken: String = "testAuthHeaderToken"
   lazy val xmlPayload: String = "testXmlPayload"
   lazy val notificationRequest1: NotificationRequest = NotificationRequest(
@@ -81,6 +84,21 @@ object TestData {
     //TODO make the time set
     timeReceived = DateTime.now().toDateTimeISO,
     _id = objectId3)
+  val notificationRequestRecord4: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest1,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId4)
+  val notificationRequestRecord5: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest2,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId5)
+  val notificationRequestRecord6: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest3,
+    //TODO make the time set
+    timeReceived = DateTime.now().toDateTimeISO,
+    _id = objectId6)
 
   //TODO delete these?
   val HeaderOne: (String, String) = "h1" -> "v1"

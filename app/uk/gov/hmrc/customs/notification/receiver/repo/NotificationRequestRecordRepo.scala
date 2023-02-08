@@ -58,18 +58,14 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     collection.insertOne(notificationRequestRecord).toFuture().map(_ => ())
   }
 
-  def findByCsId(csId: CsId): Future[NotificationRequestRecord] = {
+  def findAllByCsId(csId: CsId): Future[Seq[NotificationRequest]] = {
     val filter: Bson = buildCsIdFilter(csId)
-    collection.find(filter).toFuture().map(_.toList.head)
+    findAllWithFilterAndSort(filter)
   }
 
-  def findByConversationId(conversationId: ConversationId): Future[NotificationRequestRecord] = {
+  def findAllByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
     val filter: Bson = buildConversationIdFilter(conversationId)
-    collection.find(filter).toFuture().map(_.toList.head)
-  }
-
-  def findAny: Future[NotificationRequestRecord] = {
-    collection.find().toFuture().map(_.toList.head)
+    findAllWithFilterAndSort(filter)
   }
 
   def countNotificationsByCsId(csId: CsId): Future[Int] = {
@@ -96,23 +92,35 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     equal("notification.conversationId", conversationId)
   }
 
+  private def findAllWithFilterAndSort(filter: Bson): Future[Seq[NotificationRequest]] = {
+    for {
+      notificationRequestRecords <- collection.find(filter).toFuture()
+    } yield {
+      val sortedNotificationRequestRecords = sortNotificationRequestRecordsByDateAscending(notificationRequestRecords)
+      sortedNotificationRequestRecords.map(_.notification)
+    }
+  }
+
   private def countNotificationsByFilter(filter: conversions.Bson): Future[Int] = {
     collection.countDocuments(filter).toFuture().map(_.toInt)
   }
 
-  //  private def sortNotificationRequestRecordsByDateAscending(notificationRequestRecords: Seq[NotificationRequestRecord]): Seq[NotificationRequestRecord] = {
-  //    notificationRequestRecords.sortWith((thisRecord, nextRecord) =>
-  //      thisRecord.timeReceived.getOrElse(throw new RuntimeException("Error(sortNotificationRequestRecordsByDateAscending): timeReceived(1) is missing"))
-  //        .isBefore(nextRecord.timeReceived.getOrElse(throw new RuntimeException("Error(sortNotificationRequestRecordsByDateAscending): timeReceived(2) is missing")))
-  //    )
-  //  }
+  private def sortNotificationRequestRecordsByDateAscending(notificationRequestRecords: Seq[NotificationRequestRecord]): Seq[NotificationRequestRecord] = {
+    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.timeReceived.isBefore(nextRecord.timeReceived))
+  }
 
-  //TODO delete this
-  //  def upsertNotificationRequestRecordByCsId(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-  //    val filter: Bson = buildCsIdFilter(notificationRequestRecord.notification.csId)
-  //    collection.findOneAndReplace(
-  //      filter = filter,
-  //      replacement = notificationRequestRecord,
-  //      options = FindOneAndReplaceOptions().upsert(true)).toFuture().map(_ => ())
-  //  }
+  //These three below are not used outside of testing but useful for that
+  def findByCsId(csId: CsId): Future[NotificationRequestRecord] = {
+    val filter: Bson = buildCsIdFilter(csId)
+    collection.find(filter).toFuture().map(_.toList.head)
+  }
+
+  def findByConversationId(conversationId: ConversationId): Future[NotificationRequestRecord] = {
+    val filter: Bson = buildConversationIdFilter(conversationId)
+    collection.find(filter).toFuture().map(_.toList.head)
+  }
+
+  def findAny: Future[NotificationRequestRecord] = {
+    collection.find().toFuture().map(_.toList.head)
+  }
 }

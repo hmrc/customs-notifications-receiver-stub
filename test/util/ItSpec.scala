@@ -86,6 +86,7 @@ trait ItSpec
     .configure(configMap).build()
 
   override def beforeEach(): Unit = {
+    Thread.sleep(250)
     SharedMetricRegistries.clear()
     super.beforeEach()
     repository.dropDb()

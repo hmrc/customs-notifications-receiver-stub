@@ -19,30 +19,49 @@ package integration.repo
 import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import support.ItSpec
 import util.TestData._
-import scala.concurrent.Future
 
 class NotificationRequestRecordRepoSpec extends ItSpec{
-
-  private def upsertTestData: Future[Unit] = {
-    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
-    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
-    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
-    //TODO remove below
-    Future.successful()
-  }
 
   "count should be 0 with an empty repo" in {
     collectionSize shouldBe 0
   }
 
-  "successfully save multiple notifications" in {
-    await(upsertTestData)
+  "save multiple notifications" in {
+    insertTestData
 
-    collectionSize shouldBe 3
+    collectionSize shouldBe 6
+  }
+
+  "find all notifications by CsId when one exists" in {
+    insertTestDataNoDuplicateCsOrConversationIds
+
+    val result = await(repository.findAllByCsId(csId1))
+    result shouldBe Seq(notificationRequest1)
+  }
+
+  "find all notifications by CsId when multiple exist" in {
+    insertTestData
+
+    val result = await(repository.findAllByCsId(csId1))
+    result shouldBe Seq(notificationRequest1, notificationRequest1)
+  }
+
+  "find all notifications by ConversationId when one exists" in {
+    insertTestDataNoDuplicateCsOrConversationIds
+
+    val result = await(repository.findAllByConversationId(conversationId1))
+    result shouldBe Seq(notificationRequest1)
+  }
+
+  "find all notifications by ConversationId when multiple exist" in {
+    insertTestData
+
+    val result = await(repository.findAllByConversationId(conversationId1))
+    result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
 
   "successfully find a specific notification by id1" in {
-    await(upsertTestData)
+    insertTestData
 
     val result1 = await(repository.findByCsId(csId1))
     result1.notification shouldBe notificationRequest1
@@ -60,7 +79,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   }
 
   "successfully find a specific notification by id2" in {
-    await(upsertTestData)
+    insertTestData
 
     val result1 = await(repository.findByConversationId(conversationId1))
     result1.notification shouldBe notificationRequest1
@@ -76,7 +95,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   }
 
   "successfully find a random notification" in {
-    await(upsertTestData)
+    insertTestData
 
     val result1 = await(repository.findAny)
     //TODO fix date generation above otherwise this will sometimes find another notification
@@ -85,20 +104,35 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
   }
 
   "count notifications by CsId" in {
-    await(upsertTestData)
+    insertTestData
 
     val result = await(repository.countNotificationsByCsId(csId1))
-    result shouldBe 1
+    result shouldBe 2
   }
 
   "count notifications by ConversationId" in {
-    await(upsertTestData)
+    insertTestData
 
     val result = await(repository.countNotificationsByConversationId(conversationId1))
-    result shouldBe 1
+    result shouldBe 2
   }
 
-  private def collectionSize: Int = {
+  private def insertTestData(): Unit = {
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord4))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord5))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord6))
+  }
+
+  private def insertTestDataNoDuplicateCsOrConversationIds(): Unit = {
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
+  }
+
+  private def collectionSize(): Int = {
     repository.countAllNotifications().futureValue
   }
 }

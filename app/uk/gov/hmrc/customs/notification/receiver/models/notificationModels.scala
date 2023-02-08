@@ -58,6 +58,7 @@ object CsId {
 
 case class NotificationRequestRecord(notification: NotificationRequest,
                                      timeReceived: DateTime,
+                                    //This is never used in this service, but is required to keep the format correct
                                      _id: ObjectId)
 object NotificationRequestRecord{
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
