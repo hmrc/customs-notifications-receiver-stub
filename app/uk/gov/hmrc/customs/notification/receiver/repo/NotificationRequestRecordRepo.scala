@@ -130,13 +130,4 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
   def findAny: Future[NotificationRequestRecord] = {
     collection.find().toFuture().map(_.toList.head)
   }
-
-  def findAnyAsNotificationRequest: Future[Seq[NotificationRequest]] = {
-    for {
-      notificationRequestRecords <- collection.find().toFuture()
-    } yield {
-      val sortedNotificationRequestRecords = sortNotificationRequestRecordsByDateAscending(notificationRequestRecords)
-      sortedNotificationRequestRecords.map(_.notification)
-    }
-  }
 }
