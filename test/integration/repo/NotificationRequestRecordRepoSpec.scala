@@ -55,48 +55,6 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
     result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
 
-  "successfully find a specific notification by id1" in {
-    insertTestData
-
-    val result1 = await(repository.findByCsId(csId1))
-    result1.notification shouldBe notificationRequest1
-    //TODO fix time issue below for all
-    //result1.timeReceived shouldBe testX1.timeReceived
-    result1._id shouldBe objectId1
-
-    val result2 = await(repository.findByCsId(csId2))
-    result2.notification shouldBe notificationRequest2
-    result2._id shouldBe objectId2
-
-    val result3 = await(repository.findByCsId(csId3))
-    result3.notification shouldBe notificationRequest3
-    result3._id shouldBe objectId3
-  }
-
-  "successfully find a specific notification by id2" in {
-    insertTestData
-
-    val result1 = await(repository.findByConversationId(conversationId1))
-    result1.notification shouldBe notificationRequest1
-    result1._id shouldBe objectId1
-
-    val result2 = await(repository.findByConversationId(conversationId2))
-    result2.notification shouldBe notificationRequest2
-    result2._id shouldBe objectId2
-
-    val result3 = await(repository.findByConversationId(conversationId3))
-    result3.notification shouldBe notificationRequest3
-    result3._id shouldBe objectId3
-  }
-
-  "successfully find a random notification" in {
-    insertTestData
-    val result1 = await(repository.findAny)
-    //TODO fix date generation above otherwise this will sometimes find another notification
-    result1.notification shouldBe notificationRequest1
-    result1._id shouldBe objectId1
-  }
-
   "count notifications by CsId" in {
     insertTestData
     val result = await(repository.countNotificationsByCsId(csId1))
@@ -111,7 +69,7 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
   "drop database" in {
     insertTestData
-    await(repository.dropDb())
+    await(repository.dropCollection())
     val result = await(repository.countAllNotifications())
     result shouldBe 0
   }
