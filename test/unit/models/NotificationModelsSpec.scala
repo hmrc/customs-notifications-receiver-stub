@@ -19,7 +19,7 @@ package unit.models
 import play.api.libs.json.{JsString, Json}
 import play.api.libs.json.Json.toJson
 import support.ItSpec
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
 import util.TestData._
 
 class NotificationModelsSpec extends ItSpec {
@@ -41,18 +41,6 @@ class NotificationModelsSpec extends ItSpec {
     }
     "when writing" in {
       toJson(conversationId1) shouldBe JsString("eaca01f9-ec3b-4ede-b263-61b626dde232")
-    }
-  }
-
-  "For NotificationRequestRecord" - {
-    "when reading" in {
-      val notificationRequestRecordJson = Json.parse("""{"notification":{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"xmlPayload":"testXmlPayload"},"timeReceived":{"$date":{"$numberLong":"1525511471123"}},"_id":{"$oid":"63e527c7af9eb2415b7d4d36"}}""")
-      val createdNotificationRequestRecord = notificationRequestRecordJson.as[NotificationRequestRecord]
-      createdNotificationRequestRecord.notification shouldBe notificationRequest1
-      createdNotificationRequestRecord._id shouldBe objectId1
-    }
-    "when writing" in {
-      toJson(notificationRequestRecord1) shouldBe Json.parse("""{"notification":{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"xmlPayload":"testXmlPayload"},"timeReceived":{"$date":{"$numberLong":"1525511471123"}},"_id":{"$oid":"63e527c7af9eb2415b7d4d36"}}""")
     }
   }
 
