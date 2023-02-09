@@ -59,7 +59,7 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
     "clear endpoint should call clearNotifications in Service" in new Setup {
       await(testController.clearNotifications().apply(FakeRequest()))
 
-      verify(mockNotificationRequestRecordRepo).dropDb()
+      verify(mockNotificationRequestRecordRepo).dropCollection()
     }
 
     "return 400 when request body is not XML" in new Setup {
