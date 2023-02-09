@@ -17,16 +17,17 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import java.util.UUID
-
 import javax.inject.Singleton
 import com.google.inject.Inject
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -48,7 +49,10 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
         val payloadAsString = xmlPayload.toString
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
         logger.debug(s"Received Notification for :${notificationRequest.csId}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString")
-        repo.insertNotificationRequestRecord(repo.buildNotificationRequestRecord(notificationRequest))
+        repo.insertNotificationRequestRecord(NotificationRequestRecord(
+          notification = notificationRequest,
+          timeReceived = DateTime.now().toDateTimeISO,
+          _id = new ObjectId()))
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
         logger.error("Invalid Xml")
@@ -123,7 +127,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
 
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>
     logger.debug("Clearing down Notifications")
-    repo.dropDb()
+    repo.dropCollection()
     Future.successful(NoContent)
   }
 
