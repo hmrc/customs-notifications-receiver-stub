@@ -40,6 +40,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.Injector
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.Result
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import play.api.test.{DefaultTestServerFactory, RunningServer}
 import play.api.{Application, Mode}
 import play.core.server.ServerConfig
@@ -62,10 +63,6 @@ trait ItSpec
 
   implicit lazy val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-//  override implicit val patienceConfig: PatienceConfig = PatienceConfig(
-//    timeout  = scaled(Span(5, Seconds)),
-//    interval = scaled(Span(300, Millis)))
-
   private val module: AbstractModule = new AbstractModule {
     override def configure(): Unit = ()
   }
@@ -86,11 +83,10 @@ trait ItSpec
     .configure(configMap).build()
 
   override def beforeEach(): Unit = {
-    Thread.sleep(250)
     SharedMetricRegistries.clear()
     super.beforeEach()
-    repository.dropDb()
-    ()
+    await(repository.dropCollection())
+    await(repository.ensureIndexes)
   }
 
   def status(of: Result): Int = of.header.status
