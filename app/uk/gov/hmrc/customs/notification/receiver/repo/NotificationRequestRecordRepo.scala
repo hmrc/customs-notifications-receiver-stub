@@ -14,120 +14,82 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.repo
+package integration.repo
 
-import org.bson.types.ObjectId
-import org.joda.time.DateTime
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.model.Indexes.compoundIndex
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import org.mongodb.scala.model.Indexes.{ascending, descending}
-import org.mongodb.scala.bson.conversions
-import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.model.Filters.equal
+import play.api.test.Helpers.{await, defaultAwaitTimeout}
+import support.ItSpec
+import util.TestData._
 
-import scala.concurrent.{ExecutionContext, Future}
-import javax.inject.{Inject, Singleton}
+class NotificationRequestRecordRepoSpec extends ItSpec{
 
-@Singleton
-class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[NotificationRequestRecord](
-    mongoComponent = mongoComponent,
-    collectionName = "notifications",
-    domainFormat = NotificationRequestRecord.format,
-    extraCodecs = Seq(
-      Codecs.playFormatCodec(NotificationRequest.format),
-      Codecs.playFormatCodec(CsId.format),
-      Codecs.playFormatCodec(ConversationId.format)
-    ),
-    indexes = Seq(
-      IndexModel(
-        compoundIndex(ascending("notification.csid"), descending("timeReceived")),
-        IndexOptions()
-          .name("csid-timeReceived-Index")
-          .unique(false)
-      ),
-      IndexModel(
-        compoundIndex(ascending("notification.conversationId"), descending("timeReceived")),
-        IndexOptions()
-          .name("conversationId-timeReceived-Index")
-          .unique(false)))
-  ) {
-
-  def buildNotificationRequestRecord(notificationRequest: NotificationRequest): NotificationRequestRecord = {
-    NotificationRequestRecord(notification = notificationRequest, timeReceived = DateTime.now().toDateTimeISO, _id = new ObjectId())
+  "count should be 0 with an empty repo" in {
+    collectionSize shouldBe 0
   }
 
-  //TODO make builder function to convert NotificationRequest -> NotificationRequestRecord
-  def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    collection.insertOne(notificationRequestRecord).toFuture().map(_ => ())
+  "save multiple notifications" in {
+    insertTestData
+    collectionSize shouldBe 6
   }
 
-  def findAllByCsId(csId: CsId): Future[Seq[NotificationRequest]] = {
-    val filter: Bson = buildCsIdFilter(csId)
-    findAllWithFilterAndSort(filter)
+  "find all notifications by CsId when one exists" in {
+    insertTestDataNoDuplicateCsOrConversationIds
+    val result = await(repository.findAllByCsId(csId1))
+    result shouldBe Seq(notificationRequest1)
   }
 
-  def findAllByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
-    val filter: Bson = buildConversationIdFilter(conversationId)
-    findAllWithFilterAndSort(filter)
+  "find all notifications by CsId when multiple exist" in {
+    insertTestData
+    val result = await(repository.findAllByCsId(csId1))
+    result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
 
-  def countNotificationsByCsId(csId: CsId): Future[Int] = {
-    countNotificationsByFilter(buildCsIdFilter(csId))
+  "find all notifications by ConversationId when one exists" in {
+    insertTestDataNoDuplicateCsOrConversationIds
+    val result = await(repository.findAllByConversationId(conversationId1))
+    result shouldBe Seq(notificationRequest1)
   }
 
-  def countNotificationsByConversationId(conversationId: ConversationId): Future[Int] = {
-    countNotificationsByFilter(buildConversationIdFilter(conversationId))
+  "find all notifications by ConversationId when multiple exist" in {
+    insertTestData
+    val result = await(repository.findAllByConversationId(conversationId1))
+    result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
 
-  def countAllNotifications(): Future[Int] = {
-    collection.countDocuments().toFuture().map(_.toInt)
+  "count notifications by CsId" in {
+    insertTestData
+    val result = await(repository.countNotificationsByCsId(csId1))
+    result shouldBe 2
   }
 
-  def dropDb(): Future[Unit] = {
-    collection.drop().toFuture().map(_ => ())
+  "count notifications by ConversationId" in {
+    insertTestData
+    val result = await(repository.countNotificationsByConversationId(conversationId1))
+    result shouldBe 2
   }
 
-  private def buildCsIdFilter(csId: CsId): conversions.Bson = {
-    equal("notification.csid", csId)
+  "drop database" in {
+    insertTestData
+    await(repository.dropCollection())
+    val result = await(repository.countAllNotifications())
+    result shouldBe 0
   }
 
-  private def buildConversationIdFilter(conversationId: ConversationId): conversions.Bson = {
-    equal("notification.conversationId", conversationId)
+  private def insertTestData(): Unit = {
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord4))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord5))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord6))
   }
 
-  private def findAllWithFilterAndSort(filter: Bson): Future[Seq[NotificationRequest]] = {
-    for {
-      notificationRequestRecords <- collection.find(filter).toFuture()
-    } yield {
-      val sortedNotificationRequestRecords = sortNotificationRequestRecordsByDateAscending(notificationRequestRecords)
-      sortedNotificationRequestRecords.map(_.notification)
-    }
+  private def insertTestDataNoDuplicateCsOrConversationIds(): Unit = {
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord1))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord2))
+    await(repository.insertNotificationRequestRecord(notificationRequestRecord3))
   }
 
-  private def countNotificationsByFilter(filter: conversions.Bson): Future[Int] = {
-    collection.countDocuments(filter).toFuture().map(_.toInt)
-  }
-
-  private def sortNotificationRequestRecordsByDateAscending(notificationRequestRecords: Seq[NotificationRequestRecord]): Seq[NotificationRequestRecord] = {
-    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.timeReceived.isBefore(nextRecord.timeReceived))
-  }
-
-  //These four below are not used outside of testing but useful for that
-  def findByCsId(csId: CsId): Future[NotificationRequestRecord] = {
-    val filter: Bson = buildCsIdFilter(csId)
-    collection.find(filter).toFuture().map(_.toList.head)
-  }
-
-  def findByConversationId(conversationId: ConversationId): Future[NotificationRequestRecord] = {
-    val filter: Bson = buildConversationIdFilter(conversationId)
-    collection.find(filter).toFuture().map(_.toList.head)
-  }
-
-  def findAny: Future[NotificationRequestRecord] = {
-    collection.find().toFuture().map(_.toList.head)
+  private def collectionSize(): Int = {
+    repository.countAllNotifications().futureValue
   }
 }
