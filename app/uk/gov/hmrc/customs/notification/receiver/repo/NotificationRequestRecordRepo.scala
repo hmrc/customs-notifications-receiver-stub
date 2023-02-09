@@ -91,11 +91,11 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent)(im
     collection.drop().toFuture().map(_ => ())
   }
 
-  private def buildCsIdFilter(csId: CsId): conversions.Bson = {
+  def buildCsIdFilter(csId: CsId): conversions.Bson = {
     equal("notification.csid", csId)
   }
 
-  private def buildConversationIdFilter(conversationId: ConversationId): conversions.Bson = {
+  def buildConversationIdFilter(conversationId: ConversationId): conversions.Bson = {
     equal("notification.conversationId", conversationId)
   }
 
