@@ -28,34 +28,29 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
   "save multiple notifications" in {
     insertTestData
-
     collectionSize shouldBe 6
   }
 
   "find all notifications by CsId when one exists" in {
     insertTestDataNoDuplicateCsOrConversationIds
-
     val result = await(repository.findAllByCsId(csId1))
     result shouldBe Seq(notificationRequest1)
   }
 
   "find all notifications by CsId when multiple exist" in {
     insertTestData
-
     val result = await(repository.findAllByCsId(csId1))
     result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
 
   "find all notifications by ConversationId when one exists" in {
     insertTestDataNoDuplicateCsOrConversationIds
-
     val result = await(repository.findAllByConversationId(conversationId1))
     result shouldBe Seq(notificationRequest1)
   }
 
   "find all notifications by ConversationId when multiple exist" in {
     insertTestData
-
     val result = await(repository.findAllByConversationId(conversationId1))
     result shouldBe Seq(notificationRequest1, notificationRequest1)
   }
@@ -96,7 +91,6 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
   "successfully find a random notification" in {
     insertTestData
-
     val result1 = await(repository.findAny)
     //TODO fix date generation above otherwise this will sometimes find another notification
     result1.notification shouldBe notificationRequest1
@@ -105,16 +99,21 @@ class NotificationRequestRecordRepoSpec extends ItSpec{
 
   "count notifications by CsId" in {
     insertTestData
-
     val result = await(repository.countNotificationsByCsId(csId1))
     result shouldBe 2
   }
 
   "count notifications by ConversationId" in {
     insertTestData
-
     val result = await(repository.countNotificationsByConversationId(conversationId1))
     result shouldBe 2
+  }
+
+  "drop database" in {
+    insertTestData
+    await(repository.dropDb())
+    val result = await(repository.countAllNotifications())
+    result shouldBe 0
   }
 
   private def insertTestData(): Unit = {
