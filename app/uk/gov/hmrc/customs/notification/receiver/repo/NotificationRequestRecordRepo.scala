@@ -56,8 +56,11 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
           .unique(false)))
   ) {
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    val result: Future[InsertOneResult] = collection.insertOne(notificationRequestRecord).toFuture()
+    val logMessage = s"[conversationId=${notificationRequestRecord.notification.conversationId}]" +
+      s"[clientSubscriptionId=${notificationRequestRecord.notification.csId}] saving clientNotification: ${notificationRequestRecord.notification}"
+    logger.debug(logMessage)
 
+    val result: Future[InsertOneResult] = collection.insertOne(notificationRequestRecord).toFuture()
     result.map{ insertResult =>
       if(insertResult.wasAcknowledged()){
         ()
@@ -70,33 +73,46 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   def findAllByCsId(csId: CsId): Future[Seq[NotificationRequest]] = {
-    logger.debug(s"fetching clientNotification(s) with csid: ${csId.toString}")
+    val logMessage = s"fetching clientNotification(s) with csid: ${csId.toString}"
+    logger.debug(logMessage)
+
     val filter: Bson = buildCsIdFilter(csId)
     findAllWithFilterAndSort(filter)
   }
 
   def findAllByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
-    logger.debug(s"fetching clientNotification(s) with conversationId: ${conversationId.toString}")
+    val logMessage = s"fetching clientNotification(s) with conversationId: ${conversationId.toString}"
+    logger.debug(logMessage)
+
     val filter: Bson = buildConversationIdFilter(conversationId)
     findAllWithFilterAndSort(filter)
   }
 
   def countNotificationsByCsId(csId: CsId): Future[Int] = {
-    logger.debug(s"counting clientNotification(s) with csid: ${csId.toString}")
+    val logMessage = s"counting clientNotification(s) with csid: ${csId.toString}"
+    logger.debug(logMessage)
+
     countNotificationsByFilter(buildCsIdFilter(csId))
   }
 
   def countNotificationsByConversationId(conversationId: ConversationId): Future[Int] = {
-    logger.debug(s"counting clientNotification(s) with conversationId: ${conversationId.toString}")
+    val logMessage = s"counting clientNotification(s) with conversationId: ${conversationId.toString}"
+    logger.debug(logMessage)
+
     countNotificationsByFilter(buildConversationIdFilter(conversationId))
   }
 
   def countAllNotifications(): Future[Int] = {
-    logger.debug("counting all clientNotifications")
+    val logMessage = "counting all clientNotifications"
+    logger.debug(logMessage)
+
     collection.countDocuments().toFuture().map(_.toInt)
   }
 
   def dropCollection(): Future[Unit] = {
+    val logMessage = "dropping the collection"
+    logger.debug(logMessage)
+
     collection.drop().toFuture().map(_ => ())
   }
 
