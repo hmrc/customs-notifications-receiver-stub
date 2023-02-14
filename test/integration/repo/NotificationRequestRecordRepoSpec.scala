@@ -21,7 +21,6 @@ import support.ItSpec
 import util.TestData._
 
 class NotificationRequestRecordRepoSpec extends ItSpec{
-
   "count should be 0 with an empty repo" in {
     collectionSize shouldBe 0
   }
