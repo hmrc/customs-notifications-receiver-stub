@@ -48,7 +48,8 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
-        logger.debug(s"Received Notification for :${notificationRequest.csId}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString")
+        val logMessage = s"Received Notification for :${notificationRequest.csId}\nheaders=\n$seqOfHeader\npayload=\n$payloadAsString"
+        logger.debug(logMessage)
         repo.insertNotificationRequestRecord(NotificationRequestRecord(
           notification = notificationRequest,
           timeReceived = DateTime.now().toDateTimeISO,
@@ -61,33 +62,39 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
-    logger.debug(s"Trying to get Notifications by CsId:$csid\nheaders=\n${request.headers.toSimpleMap}")
+    val logMessageOnCall = s"Trying to get Notifications by CsId:$csid\nheaders=\n${request.headers.toSimpleMap}"
+    logger.debug(logMessageOnCall)
 
     Try(UUID.fromString(csid)) match {
       case Success(uuid) =>
         val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByCsId(CsId(uuid))
         eventuallyNotifications.map{seqNotifications =>
-          logger.debug(s"Found Notifications for Csid $csid\n$seqNotifications")
+          val logMessageOnSuccess = s"Found Notifications for Csid $csid\n$seqNotifications"
+          logger.debug(logMessageOnSuccess)
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
-        logger.error("Bad request", e)
+        val logMessageOnFail = "Bad request"
+        logger.error(logMessageOnFail, e)
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
 
   def retrieveNotificationByConversationId(conversationId: String): Action[AnyContent] = Action.async { request =>
-    logger.debug(s"Trying to get Notifications by ConversationId:$conversationId\nheaders=\n${request.headers.toSimpleMap}")
+    val logMessageOnCall = s"Trying to get Notifications by ConversationId:$conversationId\nheaders=\n${request.headers.toSimpleMap}"
+    logger.debug(logMessageOnCall)
 
     Try(UUID.fromString(conversationId)) match {
       case Success(uuid) =>
         val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByConversationId(ConversationId(uuid))
         eventuallyNotifications.map{seqNotifications =>
-          logger.debug(s"Found Notifications for ConversationId $conversationId\n$seqNotifications")
+          val logMessageOnSuccess = s"Found Notifications for ConversationId $conversationId\n$seqNotifications"
+          logger.debug(logMessageOnSuccess)
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
-        logger.error("Bad request", e)
+        val logMessageOnFail = "Bad request"
+        logger.error(logMessageOnFail, e)
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
@@ -96,11 +103,13 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
     Try(UUID.fromString(csid)) match {
       case Success(csidUuid) =>
         repo.countNotificationsByCsId(CsId(csidUuid)).map{ count =>
-          logger.debug(s"About to get counts by CsId:$csid count=$count")
+          val logMessageOnSuccess = s"About to get counts by CsId:$csid count=$count"
+          logger.debug(logMessageOnSuccess)
           Ok(Json.parse(s"""{"count": "$count"}"""))
         }
       case Failure(e) =>
-        logger.error(s"Invalid csid UUID $csid")
+        val logMessageOnFail = s"Invalid csid UUID $csid"
+        logger.error(logMessageOnFail)
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
@@ -109,30 +118,35 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
     Try(UUID.fromString(conversationId)) match {
       case Success(csidUuid) =>
         repo.countNotificationsByConversationId(ConversationId(csidUuid)).map{ count =>
-          logger.debug(s"About to get counts by conversationId:$conversationId count=$count")
+          val logMessageOnSuccess = s"About to get counts by conversationId:$conversationId count=$count"
+          logger.debug(logMessageOnSuccess)
           Ok(Json.parse(s"""{"count": "$count"}"""))
         }
       case Failure(e) =>
-        logger.error(s"Invalid csid UUID $conversationId")
+        val logMessageOnFail = s"Invalid csid UUID $conversationId"
+        logger.error(logMessageOnFail)
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
 
   def countAllNotifications: Action[AnyContent] = Action.async { _ =>
     repo.countAllNotifications().map{ count =>
-      logger.debug(s"About to get count of all notifications")
+      val logMessage = s"About to get count of all notifications"
+      logger.debug(logMessage)
       Ok(Json.parse(s"""{"count": "$count"}"""))
     }
   }
 
   def clearNotifications(): Action[AnyContent] = Action.async { _ =>
-    logger.debug("Clearing down Notifications")
+    val logMessage = "Clearing down Notifications"
+    logger.debug(logMessage)
     repo.dropCollection()
     Future.successful(NoContent)
   }
 
   def customResponse(statusCode: Int): Action[AnyContent] = Action.async {
-    logger.debug(s"Responding with HTTP status $statusCode as requested")
+    val logMessage = s"Responding with HTTP status $statusCode as requested"
+    logger.debug(logMessage)
 
     val result = statusCode match {
       case code if (code >= 300) && (code < 400) =>
