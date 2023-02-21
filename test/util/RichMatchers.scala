@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.customs.notification.receiver.models
+package util
 
-import play.api.libs.json.{Format, Json}
+import org.scalatest._
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.diagrams.Diagrams
 
-case class CountsByConversationId(conversationId: ConversationId, count: Int)
-object CountsByConversationId {
-  implicit val format: Format[CountsByConversationId] = Json.format[CountsByConversationId]
-}
+object RichMatchers extends RichMatchers
 
-case class CountsGroupedByCsidAndConversationId(csid: CsId, countsByConversationId: Seq[CountsByConversationId])
-object CountsGroupedByCsidAndConversationId {
-  implicit val format: Format[CountsGroupedByCsidAndConversationId] = Json.format[CountsGroupedByCsidAndConversationId]
-}
+trait RichMatchers
+  extends Matchers
+    with Diagrams
+    with TryValues
+    with EitherValues
+    with OptionValues
+    with AppendedClues
+    with ScalaFutures
+    with StreamlinedXml
+    with Inside
+    with Eventually
+    with IntegrationPatience

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,87 @@
 
 package util
 
-import java.util.UUID
+import org.bson.types.ObjectId
+import org.joda.time.DateTime
 
+import java.util.UUID
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
 
 import scala.util.control.NonFatal
 import scala.xml._
 
 object TestData {
+  val csId1: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
+  val csId2: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
+  val csId3: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde234"))
+  val conversationId1: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
+  val conversationId2: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
+  val conversationId3: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde231"))
+  val header1: Header = Header(name = "testHeader1", value = "value1")
+  val header2: Header = Header(name = "testHeader2", value = "value2")
+  val header3: Header = Header(name = "testHeader3", value = "value3")
+  val header4: Header = Header(name = "testHeader4", value = "value4")
+  val header5: Header = Header(name = "testHeader5", value = "value5")
+  val header6: Header = Header(name = "testHeader6", value = "value6")
+  val headers1: List[Header] = List(header1, header2)
+  val headers2: List[Header] = List(header3, header4)
+  val headers3: List[Header] = List(header5, header6)
+  val objectId1: ObjectId = new ObjectId("63e527c7af9eb2415b7d4d36")
+  val objectId2: ObjectId = new ObjectId("63e52773ba3698660c6e6020")
+  val objectId3: ObjectId = new ObjectId("63e5299c0b3c451a390c3ab2")
+  val objectId4: ObjectId = new ObjectId("63e529c26bdb5560c924838a")
+  val objectId5: ObjectId = new ObjectId("63e529e0968d6b7c482e44a6")
+  val objectId6: ObjectId = new ObjectId("63e52a05ef67a61170aabc04")
+  val authHeaderToken: String = "testAuthHeaderToken"
+  val xmlPayload: String = "testXmlPayload"
+  val notificationRequest1: NotificationRequest = NotificationRequest(
+    csId = csId1,
+    conversationId = conversationId1,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers1,
+    xmlPayload = xmlPayload)
+  val notificationRequest2: NotificationRequest = NotificationRequest(
+    csId = csId2,
+    conversationId = conversationId2,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers2,
+    xmlPayload = xmlPayload)
+  val notificationRequest3: NotificationRequest = NotificationRequest(
+    csId = csId3,
+    conversationId = conversationId3,
+    authHeaderToken = authHeaderToken,
+    outboundCallHeaders = headers3,
+    xmlPayload = xmlPayload)
+  val notificationRequestRecord1: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest1,
+    timeReceived = new DateTime("2018-05-05T10:11:11.123").toDateTimeISO,
+    _id = objectId1)
+  val notificationRequestRecord2: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest2,
+    timeReceived = new DateTime("2018-05-05T10:11:12.123").toDateTimeISO,
+    _id = objectId2)
+  val notificationRequestRecord3: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest3,
+    timeReceived = new DateTime("2018-05-05T10:11:13.123").toDateTimeISO,
+    _id = objectId3)
+  val notificationRequestRecord4: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest1,
+    timeReceived = new DateTime("2018-05-05T10:11:14.123").toDateTimeISO,
+    _id = objectId4)
+  val notificationRequestRecord5: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest2,
+    timeReceived = new DateTime("2018-05-05T10:11:15.123").toDateTimeISO,
+    _id = objectId5)
+  val notificationRequestRecord6: NotificationRequestRecord = NotificationRequestRecord(
+    notification = notificationRequest3,
+    timeReceived = new DateTime("2018-05-05T10:11:16.123").toDateTimeISO,
+    _id = objectId6)
 
-  val CsidOne: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde232"))
-  val CsidTwo: CsId = CsId(UUID.fromString("ffff01f9-ec3b-4ede-b263-61b626dde239"))
-  val ConversationIdOne: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde232"))
-  val ConversationIdTwo: ConversationId = ConversationId(UUID.fromString("eaca01f9-ec3b-4ede-b263-61b626dde239"))
   val HeaderOne: (String, String) = "h1" -> "v1"
   val HeaderTwo: (String, String) = "h2" -> "v2"
   val XmlPayload : NodeSeq = <stuff><moreXml>Stuff</moreXml></stuff>
-
-
   val AuthToken = "AUTH_TOKEN"
-  val NotificationRequestOne = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>OneOfTwo</foo>")
-  val NotificationRequestOneTwo = NotificationRequest(CsidOne, ConversationIdOne, AuthToken, Seq.empty, s"<foo>TwoOfTwo</foo>")
-  val NotificationRequestTwo = NotificationRequest(CsidTwo, ConversationIdTwo, AuthToken, Seq.empty, s"<foo>$CsidTwo</foo>")
 
   def notificationRequestJson(csid: CsId, conversationId: ConversationId, xmlPayload: NodeSeq = XmlPayload): JsValue = Json.parse(notificationRequest(csid, conversationId))
 

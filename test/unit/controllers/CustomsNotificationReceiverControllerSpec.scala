@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
 import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
-import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRepo
+import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import util.UnitSpec
 import util.TestData._
 
@@ -41,25 +41,25 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
   private implicit val ec = Helpers.stubControllerComponents().executionContext
 
   trait Setup {
-    val mockPersistenceService: NotificationRepo = mock[NotificationRepo]
+    val mockNotificationRequestRecordRepo: NotificationRequestRecordRepo = mock[NotificationRequestRecordRepo]
     val mockHeaderValidationAction: HeaderValidationAction = mock[HeaderValidationAction]
     val mockLogger: CdsLogger = mock[CdsLogger]
     lazy val testController: CustomsNotificationReceiverController =
-      new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents()), mockPersistenceService, Helpers.stubControllerComponents())
+      new CustomsNotificationReceiverController(mockLogger, new HeaderValidationAction(mockLogger, Helpers.stubControllerComponents()), mockNotificationRequestRecordRepo, Helpers.stubControllerComponents())
   }
 
   "CustomsNotificationReceiverController" should {
     val fakeRequestWithHeaders = FakeRequest().withHeaders(
-      AUTHORIZATION -> CsidOne.toString,
+      AUTHORIZATION -> csId1.toString,
       CONTENT_TYPE -> MimeTypes.XML,
       USER_AGENT -> "Customs Declaration Service",
-      CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> ConversationIdOne.toString
+      CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME -> conversationId1.toString
     )
 
     "clear endpoint should call clearNotifications in Service" in new Setup {
       await(testController.clearNotifications().apply(FakeRequest()))
 
-      verify(mockPersistenceService).clearAll()
+      verify(mockNotificationRequestRecordRepo).dropCollection()
     }
 
     "return 400 when request body is not XML" in new Setup {
