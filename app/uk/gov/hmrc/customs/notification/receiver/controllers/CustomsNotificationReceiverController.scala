@@ -150,7 +150,7 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
 
     val result = statusCode match {
       case code if (code >= 300) && (code < 400) =>
-        Redirect(routes.CustomsNotificationReceiverController.post(), code)
+        Redirect("/customs-notifications-receiver-stub/pushnotifications", code)
       case _ =>
         ErrorResponse(statusCode, "REQUESTED_ERROR", s"Returning HTTP status $statusCode as requested").XmlResult
     }
