@@ -9,8 +9,6 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import scala.language.postfixOps
 
 name := "customs-notifications-receiver-stub"
-scalaVersion := "2.12.14"
-targetJvm := "jvm-1.8"
 
 lazy val CdsIntegrationComponentTest = config("it") extend Test
 
@@ -31,6 +29,8 @@ lazy val microservice = (project in file("."))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .configs(testConfig: _*)
   .settings(
+    scalaVersion := "2.13.11",
+    targetJvm := "jvm-11",
     commonSettings,
     unitTestSettings,
     integrationComponentTestSettings,
@@ -38,7 +38,8 @@ lazy val microservice = (project in file("."))
     scoverageSettings
   )
   .settings(majorVersion := 0)
-  .settings(scalacOptions += "-P:silencer:pathFilters=routes")
+  .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
+  .settings(scalacOptions += "-Wconf:cat=unused-imports&src=target/scala-2\\.13/routes/.*:s")
   .settings(playDefaultPort := 9826)
 
 lazy val unitTestSettings =
@@ -58,7 +59,7 @@ lazy val integrationComponentTestSettings =
       CdsIntegrationComponentTest / testGrouping := forkedJvmPerTestConfig((Test / definedTests).value, "integration", "component")
     )
 
-lazy val commonSettings: Seq[Setting[_]] = publishingSettings ++ gitStampSettings
+lazy val commonSettings: Seq[Setting[_]] = gitStampSettings
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
