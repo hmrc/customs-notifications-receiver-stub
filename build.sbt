@@ -81,3 +81,6 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
 libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
+
+// To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
