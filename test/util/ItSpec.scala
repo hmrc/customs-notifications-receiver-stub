@@ -86,7 +86,7 @@ trait ItSpec
     SharedMetricRegistries.clear()
     super.beforeEach()
     await(repository.dropCollection())
-    await(repository.ensureIndexes)
+    await(repository.ensureIndexes())
   }
 
   def status(of: Result): Int = of.header.status
