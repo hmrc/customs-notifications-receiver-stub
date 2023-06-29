@@ -38,7 +38,6 @@ lazy val microservice = (project in file("."))
     scoverageSettings
   )
   .settings(majorVersion := 0)
-  .settings(libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   .settings(scalacOptions += "-Wconf:cat=unused-imports&src=target/scala-2\\.13/routes/.*:s")
   .settings(playDefaultPort := 9826)
 
