@@ -41,9 +41,9 @@ class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponen
   override def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] = {
     Future.successful{
       for {
-        _ <- validateAndExtract(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid).right
-        conversationId <- validateAndExtract(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest).right
-        authHeader <- validateAndExtract(r, HeaderNames.AUTHORIZATION, uuidRegex, ErrorGenericBadRequest).right
+        _ <- validateAndExtract(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid)
+        conversationId <- validateAndExtract(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest)
+        authHeader <- validateAndExtract(r, HeaderNames.AUTHORIZATION, uuidRegex, ErrorGenericBadRequest)
       } yield ExtractedHeadersRequest(CsId(UUID.fromString(authHeader)), ConversationId(UUID.fromString(conversationId)), authHeader,  r)
     }
   }

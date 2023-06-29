@@ -18,13 +18,13 @@ package unit.models
 
 import play.api.libs.json.{JsString, Json}
 import play.api.libs.json.Json.toJson
-import support.ItSpec
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
 import util.TestData._
+import util.UnitSpec
 
-class NotificationModelsSpec extends ItSpec {
+class NotificationModelsSpec extends UnitSpec {
 
-  "For CsId" - {
+  "For CsId" should {
     "when reading" in {
       val csIdJson = JsString("ffff01f9-ec3b-4ede-b263-61b626dde232")
       csIdJson.as[CsId] shouldBe csId1
@@ -34,7 +34,7 @@ class NotificationModelsSpec extends ItSpec {
     }
   }
 
-  "For ConversationId" - {
+  "For ConversationId" should {
     "when reading" in {
       val conversationIdJson = JsString("eaca01f9-ec3b-4ede-b263-61b626dde232")
       conversationIdJson.as[ConversationId] shouldBe conversationId1
@@ -44,7 +44,7 @@ class NotificationModelsSpec extends ItSpec {
     }
   }
 
-  "For NotificationRequest" - {
+  "For NotificationRequest" should {
     "when reading" in {
       val notificationRequestJson = Json.parse("""{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"xmlPayload":"testXmlPayload"}""")
       notificationRequestJson.as[NotificationRequest] shouldBe notificationRequest1
