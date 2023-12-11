@@ -18,20 +18,21 @@ package unit.controllers
 
 import akka.util.Timeout
 import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status
 import play.api.test.Helpers.{AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import play.api.test.{FakeRequest, Helpers}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.customs.api.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
-import uk.gov.hmrc.customs.notification.receiver.models.CustomHeaderNames
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CustomHeaderNames, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
-import util.UnitSpec
 import util.TestData._
+import util.UnitSpec
 
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -67,6 +68,16 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
 
       Helpers.status(result) shouldBe Status.BAD_REQUEST
       string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>BAD_REQUEST</code><message>Invalid Xml</message></errorResponse>
+    }
+
+    "return 404 when searching by conversation Id and notifications is empty" in new Setup {
+      val conversationId = "eaca01f9-ec3b-4ede-b263-61b626dde292"
+      val notificationReqSeq: Seq[NotificationRequest] = Seq()
+
+      when(mockNotificationRequestRecordRepo.findAllByConversationId(ConversationId(UUID.fromString(conversationId)))).thenReturn(notificationReqSeq)
+      private val result = testController.retrieveNotificationByConversationId(conversationId).apply(fakeRequestWithHeaders)
+      Helpers.status(result) shouldBe Status.NOT_FOUND
+      string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>NOT_FOUND</code><message>Resource was not found</message></errorResponse>
     }
 
     "return custom HTTP error status code as specified in the URL path parameter" in new Setup {

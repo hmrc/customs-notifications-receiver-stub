@@ -88,9 +88,15 @@ class CustomsNotificationReceiverController @Inject()(logger : CdsLogger,
       case Success(uuid) =>
         val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByConversationId(ConversationId(uuid))
         eventuallyNotifications.map{seqNotifications =>
-          val logMessageOnSuccess = s"Found Notifications for ConversationId $conversationId\n$seqNotifications"
-          logger.debug(logMessageOnSuccess)
-          Ok(Json.toJson(seqNotifications))
+          if (seqNotifications.isEmpty) {
+            val logMessageOnEmpty = s"Notifications for ConversationId $conversationId\n is empty"
+            logger.debug(logMessageOnEmpty)
+            ErrorNotFound.XmlResult
+          } else {
+            val logMessageOnSuccess = s"Found Notifications for ConversationId $conversationId\n$seqNotifications"
+            logger.debug(logMessageOnSuccess)
+            Ok(Json.toJson(seqNotifications))
+          }
         }
       case Failure(e) =>
         val logMessageOnFail = "Bad request"
