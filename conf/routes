@@ -1,6 +1,5 @@
 ->            /                                                                                                  health.Routes
 
-GET           /customs-notifications-receiver-stub/admin/metrics                                                 @com.kenshoo.play.metrics.MetricsController.metrics
 GET           /customs-notifications-receiver-stub/pushnotifications/totalcount                                  uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.countAllNotifications
 GET           /customs-notifications-receiver-stub/pushnotifications/count/csid/:csid                            uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.countNotificationByCsId(csid)
 GET           /customs-notifications-receiver-stub/pushnotifications/count/conversationid/:conversationid        uk.gov.hmrc.customs.notification.receiver.controllers.CustomsNotificationReceiverController.countNotificationByConversationId(conversationid)

@@ -20,8 +20,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.Helpers.{ACCEPT, AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.customs.api.common.controllers.ErrorResponse.ErrorContentTypeHeaderInvalid
-import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.common.controllers.ErrorResponse.ErrorContentTypeHeaderInvalid
+import uk.gov.hmrc.customs.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.HeaderValidationAction
 import uk.gov.hmrc.customs.notification.receiver.models.{CustomHeaderNames, ExtractedHeadersRequest}
 import util.TestData.conversationId1
