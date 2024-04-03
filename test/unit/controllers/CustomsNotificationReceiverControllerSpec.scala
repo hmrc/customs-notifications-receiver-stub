@@ -25,7 +25,7 @@ import play.api.http.Status
 import play.api.test.Helpers.{AUTHORIZATION, CONTENT_TYPE, USER_AGENT}
 import play.api.test.{FakeRequest, Helpers}
 import play.mvc.Http.MimeTypes
-import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.controllers.{CustomsNotificationReceiverController, HeaderValidationAction}
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CustomHeaderNames, NotificationRequest}
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo

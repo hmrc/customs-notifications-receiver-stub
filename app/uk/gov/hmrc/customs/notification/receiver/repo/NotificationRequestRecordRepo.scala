@@ -26,7 +26,7 @@ import org.mongodb.scala.bson.conversions
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.result.InsertOneResult
-import uk.gov.hmrc.customs.api.common.logging.CdsLogger
+import uk.gov.hmrc.customs.common.logging.CdsLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
