@@ -17,12 +17,12 @@
 package uk.gov.hmrc.customs.notification.receiver.models
 
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
-
-import java.util.UUID
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJodaFormats}
+import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJavatimeFormats}
+
+import java.time.{LocalDate, LocalDateTime}
+import java.util.UUID
 
 case class Header(name: String, value: String)
 
@@ -57,15 +57,14 @@ object CsId {
 }
 
 case class NotificationRequestRecord(notification: NotificationRequest,
-                                     timeReceived: DateTime,
+                                     timeReceived: LocalDateTime,
                                     //This is never used in this service, but is required to keep the format correct
                                      _id: ObjectId)
 object NotificationRequestRecord{
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-  implicit val dateTimeFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
   implicit val format: Format[NotificationRequestRecord] = (
       (__ \ "notification").format[NotificationRequest] and
-      (__ \ "timeReceived").format[DateTime] and
+      (__ \ "timeReceived").format[LocalDateTime] and
       (__ \ "_id").format[ObjectId]
   )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
