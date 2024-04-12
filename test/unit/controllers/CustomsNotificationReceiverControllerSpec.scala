@@ -16,7 +16,7 @@
 
 package unit.controllers
 
-import akka.util.Timeout
+import org.apache.pekko.util.Timeout
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
