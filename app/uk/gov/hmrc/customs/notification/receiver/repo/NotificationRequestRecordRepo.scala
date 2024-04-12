@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.model.Indexes.compoundIndex
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import org.mongodb.scala.model.Indexes.{ascending, descending}
 import org.mongodb.scala.bson.conversions
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Indexes.{ascending, compoundIndex, descending}
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.result.InsertOneResult
 import uk.gov.hmrc.customs.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, logger: CdsLogger)(implicit ec: ExecutionContext)
