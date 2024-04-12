@@ -4,7 +4,6 @@ import sbt.Tests.{Group, SubProcess}
 import sbt._
 import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm}
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 
 import scala.language.postfixOps
 
@@ -29,7 +28,7 @@ lazy val microservice = (project in file("."))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .configs(testConfig: _*)
   .settings(
-    scalaVersion := "2.13.10",
+    scalaVersion := "2.13.13",
     targetJvm := "jvm-11",
     commonSettings,
     unitTestSettings,
@@ -80,6 +79,3 @@ scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
 libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test
-
-// To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
-libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
