@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
-import java.util.UUID
-
-import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames
 import play.api.mvc.{ActionRefiner, ControllerComponents, Request, Result}
 import play.mvc.Http.MimeTypes
@@ -27,6 +24,8 @@ import uk.gov.hmrc.customs.common.controllers.ErrorResponse.{ErrorContentTypeHea
 import uk.gov.hmrc.customs.common.logging.CdsLogger
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, CustomHeaderNames, ExtractedHeadersRequest}
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.matching.Regex
 
