@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.customs.notification.receiver.repo
 
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.model.Indexes.compoundIndex
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import org.mongodb.scala.model.Indexes.{ascending, descending}
 import org.mongodb.scala.bson.conversions
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Indexes.{ascending, compoundIndex, descending}
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.result.InsertOneResult
 import uk.gov.hmrc.customs.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest, NotificationRequestRecord}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.concurrent.{ExecutionContext, Future}
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, logger: CdsLogger)(implicit ec: ExecutionContext)
@@ -56,9 +55,8 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
           .unique(false)))
   ) {
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    val logMessage = s"[conversationId=${notificationRequestRecord.notification.conversationId}]" +
-      s"[clientSubscriptionId=${notificationRequestRecord.notification.csId}] saving clientNotification: ${notificationRequestRecord.notification}"
-    logger.debug(logMessage)
+    logger.debug(s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
+      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] saving clientNotification: [${notificationRequestRecord.notification}]")
 
     val result: Future[InsertOneResult] = collection.insertOne(notificationRequestRecord).toFuture()
     result.map{ insertResult =>
@@ -73,46 +71,32 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   def findAllByCsId(csId: CsId): Future[Seq[NotificationRequest]] = {
-    val logMessage = s"fetching clientNotification(s) with csid: ${csId.toString}"
-    logger.debug(logMessage)
-
-    val filter: Bson = buildCsIdFilter(csId)
-    findAllWithFilterAndSort(filter)
+    logger.debug(s"fetching clientNotification(s) with csid: [${csId}]")
+    findAllWithFilterAndSort(buildCsIdFilter(csId))
   }
 
   def findAllByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
-    val logMessage = s"fetching clientNotification(s) with conversationId: ${conversationId.toString}"
-    logger.debug(logMessage)
-
-    val filter: Bson = buildConversationIdFilter(conversationId)
-    findAllWithFilterAndSort(filter)
+    logger.debug(s"fetching clientNotification(s) with conversationId: [${conversationId}]")
+    findAllWithFilterAndSort(buildConversationIdFilter(conversationId))
   }
 
   def countNotificationsByCsId(csId: CsId): Future[Int] = {
-    val logMessage = s"counting clientNotification(s) with csid: ${csId.toString}"
-    logger.debug(logMessage)
-
+    logger.debug(s"counting clientNotification(s) with csid: [${csId}]")
     countNotificationsByFilter(buildCsIdFilter(csId))
   }
 
   def countNotificationsByConversationId(conversationId: ConversationId): Future[Int] = {
-    val logMessage = s"counting clientNotification(s) with conversationId: ${conversationId.toString}"
-    logger.debug(logMessage)
-
+    logger.debug(s"counting clientNotification(s) with conversationId: [${conversationId}]")
     countNotificationsByFilter(buildConversationIdFilter(conversationId))
   }
 
   def countAllNotifications(): Future[Int] = {
-    val logMessage = "counting all clientNotifications"
-    logger.debug(logMessage)
-
+    logger.debug("counting all clientNotifications")
     collection.countDocuments().toFuture().map(_.toInt)
   }
 
   def dropCollection(): Future[Unit] = {
-    val logMessage = "dropping the collection"
-    logger.debug(logMessage)
-
+    logger.debug("dropping the collection")
     collection.drop().toFuture().map(_ => ())
   }
 
@@ -128,8 +112,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
     for {
       notificationRequestRecords <- collection.find(filter).toFuture()
     } yield {
-      val sortedNotificationRequestRecords = sortNotificationRequestRecordsByDateAscending(notificationRequestRecords)
-      sortedNotificationRequestRecords.map(_.notification)
+      sortNotificationRequestRecordsByDateAscending(notificationRequestRecords).map(_.notification)
     }
   }
 

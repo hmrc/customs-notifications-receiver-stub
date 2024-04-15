@@ -17,12 +17,11 @@
 package util
 
 import org.bson.types.ObjectId
-import org.joda.time.DateTime
-
-import java.util.UUID
 import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, Header, NotificationRequest, NotificationRequestRecord}
+import uk.gov.hmrc.customs.notification.receiver.models._
 
+import java.time.LocalDateTime
+import java.util.UUID
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -50,47 +49,56 @@ object TestData {
   val objectId6: ObjectId = new ObjectId("63e52a05ef67a61170aabc04")
   val authHeaderToken: String = "testAuthHeaderToken"
   val xmlPayload: String = "testXmlPayload"
+
   val notificationRequest1: NotificationRequest = NotificationRequest(
     csId = csId1,
     conversationId = conversationId1,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers1,
     xmlPayload = xmlPayload)
+
   val notificationRequest2: NotificationRequest = NotificationRequest(
     csId = csId2,
     conversationId = conversationId2,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers2,
     xmlPayload = xmlPayload)
+
   val notificationRequest3: NotificationRequest = NotificationRequest(
     csId = csId3,
     conversationId = conversationId3,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers3,
     xmlPayload = xmlPayload)
+
   val notificationRequestRecord1: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest1,
-    timeReceived = new DateTime("2018-05-05T10:11:11.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:11.123"),
     _id = objectId1)
+
   val notificationRequestRecord2: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest2,
-    timeReceived = new DateTime("2018-05-05T10:11:12.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:12.123"),
     _id = objectId2)
+
   val notificationRequestRecord3: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest3,
-    timeReceived = new DateTime("2018-05-05T10:11:13.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:13.123"),
     _id = objectId3)
+
   val notificationRequestRecord4: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest1,
-    timeReceived = new DateTime("2018-05-05T10:11:14.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:14.123"),
     _id = objectId4)
+
   val notificationRequestRecord5: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest2,
-    timeReceived = new DateTime("2018-05-05T10:11:15.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:15.123"),
     _id = objectId5)
+
   val notificationRequestRecord6: NotificationRequestRecord = NotificationRequestRecord(
     notification = notificationRequest3,
-    timeReceived = new DateTime("2018-05-05T10:11:16.123").toDateTimeISO,
+    timeReceived = LocalDateTime.parse("2018-05-05T10:11:16.123"),
     _id = objectId6)
 
   val HeaderOne: (String, String) = "h1" -> "v1"

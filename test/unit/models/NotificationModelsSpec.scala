@@ -16,8 +16,8 @@
 
 package unit.models
 
-import play.api.libs.json.{JsString, Json}
 import play.api.libs.json.Json.toJson
+import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, NotificationRequest}
 import util.TestData._
 import util.UnitSpec
