@@ -52,8 +52,9 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
-        logger.error("Invalid Xml")
-        Future.successful(errorBadRequest("Invalid Xml").XmlResult)
+        val message = "Invalid Xml"
+        logger.error(message)
+        Future.successful(errorBadRequest(message).XmlResult)
     }
   }
 
@@ -62,9 +63,9 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
     Try(UUID.fromString(csid)) match {
       case Success(uuid) =>
-        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByCsId(CsId(uuid))
+        val eventuallyNotifications  = repo.findAllByCsId(CsId(uuid))
         eventuallyNotifications.map { seqNotifications =>
-          logger.debug(s"Found Notifications for Csid [$csid\n$seqNotifications]")
+          logger.debug(s"""Found Notifications for Csid [$csid${seqNotifications.mkString("\n","\n","")}]""")
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
@@ -78,13 +79,13 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
     Try(UUID.fromString(conversationId)) match {
       case Success(uuid) =>
-        val eventuallyNotifications: Future[Seq[NotificationRequest]] = repo.findAllByConversationId(ConversationId(uuid))
+        val eventuallyNotifications = repo.findAllByConversationId(ConversationId(uuid))
         eventuallyNotifications.map { seqNotifications =>
           if (seqNotifications.isEmpty) {
             logger.debug(s"Notifications for ConversationId [$conversationId] is empty")
             ErrorNotFound.XmlResult
           } else {
-            logger.debug(s"Found Notifications for ConversationId [$conversationId\n$seqNotifications]")
+            logger.debug(s""""Found Notifications for ConversationId [$conversationId${seqNotifications.mkString("\n","\n","")}]""")
             Ok(Json.toJson(seqNotifications))
           }
         }
