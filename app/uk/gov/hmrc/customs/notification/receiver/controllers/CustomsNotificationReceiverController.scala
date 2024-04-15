@@ -28,7 +28,7 @@ import uk.gov.hmrc.customs.notification.receiver.models._
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}

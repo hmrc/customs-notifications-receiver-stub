@@ -19,9 +19,9 @@ package uk.gov.hmrc.customs.notification.receiver.models
 import org.bson.types.ObjectId
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.{MongoFormats, MongoJavatimeFormats}
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDateTime
 import java.util.UUID
 
 case class Header(name: String, value: String)
@@ -34,7 +34,7 @@ case class ConversationId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object ConversationId {
-  implicit val format = new Format[ConversationId] {
+  implicit val format: Format[ConversationId] = new Format[ConversationId] {
     def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
     def reads(json: JsValue): JsResult[ConversationId] = json match {
       case JsNull => JsError()
@@ -47,7 +47,7 @@ case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
 object CsId {
-  implicit val format = new Format[CsId] {
+  implicit val format: Format[CsId] = new Format[CsId] {
     def writes(csid: CsId): JsString = JsString(csid.id.toString)
     def reads(json: JsValue): JsResult[CsId] = json match {
       case JsNull => JsError()
