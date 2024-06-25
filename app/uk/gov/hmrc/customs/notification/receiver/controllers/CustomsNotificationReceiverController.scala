@@ -50,6 +50,9 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
         logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]\npayload=\n[$payloadAsString]")
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
+        if(payloadAsString.contains("failWith-500")){
+          Future.successful(Ok(Json.toJson(notificationRequest))) //TODO make return 500
+        }else
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
         val message = "Invalid Xml"
