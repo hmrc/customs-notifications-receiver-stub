@@ -51,7 +51,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]\npayload=\n[$payloadAsString]")
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
         if(payloadAsString.contains("failWith-500")){
-          Future.successful(Ok(Json.toJson(notificationRequest))) //TODO make return 500
+          Future.successful(InternalServerError(Json.toJson(notificationRequest)))
         }else
         Future.successful(Ok(Json.toJson(notificationRequest)))
       case None =>
