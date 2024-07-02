@@ -48,7 +48,8 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
-        logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]\npayload=\n[$payloadAsString]")
+        logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]")
+        println(Console.RED_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Payload - FunctionCode: ${notificationRequest.xmlPayload.subSequence(notificationRequest.xmlPayload.indexOf("p:FunctionCode"), notificationRequest.xmlPayload.indexOf("p:FunctionCode") + 20)}" + Console.RESET)
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
         if(payloadAsString.contains("failWith-500")){
           Future.successful(InternalServerError(Json.toJson(notificationRequest)))
