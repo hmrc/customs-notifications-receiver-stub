@@ -55,8 +55,9 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
           .unique(false)))
   ) {
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    logger.debug(s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
-      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] saving clientNotification: [${notificationRequestRecord.notification}]")
+    //TODO
+//    logger.debug(s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
+//      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] saving clientNotification: [${notificationRequestRecord.notification}]")
 
     val result: Future[InsertOneResult] = collection.insertOne(notificationRequestRecord).toFuture()
     result.map{ insertResult =>

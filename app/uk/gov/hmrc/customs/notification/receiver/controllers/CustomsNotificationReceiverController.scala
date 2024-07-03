@@ -41,8 +41,10 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
                                                       repo: NotificationRequestRecordRepo,
                                                       cc: ControllerComponents)
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
+  val count = scala.collection.mutable.Map[String,String]()
 
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
+    //TODO AS THIS IS MOCKING THE CLIENT WE WOULD LIKE THIS TO RETURN 500 SO MANY TIMES AND THEN RETURN OK
     extractedHeadersRequest.body.asXml match {
       case Some(xmlPayload) =>
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
@@ -52,6 +54,8 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         println(Console.RED_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Payload - FunctionCode: ${notificationRequest.xmlPayload.subSequence(notificationRequest.xmlPayload.indexOf("p:FunctionCode"), notificationRequest.xmlPayload.indexOf("p:FunctionCode") + 20)}" + Console.RESET)
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
         if(payloadAsString.contains("failWith-500")){
+
+          println(Console.MAGENTA_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Contains LRN: failWith-500" + Console.RESET)
           Future.successful(InternalServerError(Json.toJson(notificationRequest)))
         }else
         Future.successful(Ok(Json.toJson(notificationRequest)))
