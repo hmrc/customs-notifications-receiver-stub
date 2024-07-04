@@ -8,7 +8,7 @@ val not3 = "xx3"
 
 def receiveNotification(id: String): Int = {
   val soFar = notificationsReceived(id)
-  println(s"receiveNotifcation [$id] [$soFar] times so far")
+  println(s"receiveNotification [$id] [$soFar] times so far")
   val now = soFar + 1
   if (now == 5) {
      200
