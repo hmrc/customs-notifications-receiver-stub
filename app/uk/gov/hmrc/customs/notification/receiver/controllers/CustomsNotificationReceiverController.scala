@@ -53,14 +53,19 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
         logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]")
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
-        val functionCode: String = notificationRequest.xmlPayload.subSequence(notificationRequest.xmlPayload.indexOf("p:FunctionCode"), notificationRequest.xmlPayload.indexOf("p:FunctionCode") + 20).toString
+
+        val functionCode: String = Try {
+          val payload = notificationRequest.xmlPayload
+          val functionCodeIndex = payload.indexOf("p:FunctionCode")
+          payload.subSequence(functionCodeIndex, functionCodeIndex + 20).toString
+        }.getOrElse("FailedToGetFunctionCode")
+
         val notificationsReceived = scala.collection.mutable.Map[String, Int]().withDefaultValue(0)
 
-
-        def chekPayloadStatus():scala.concurrent.Future[play.api.mvc.Result] = {
+        def checkPayloadStatus():scala.concurrent.Future[play.api.mvc.Result] = {
           payloadAsString match {
             case payloadAsString if payloadAsString.contains("failWith-500") => countTimesReturned()
-            case payloadAsString if payloadAsString.contains("failWith-400") => Future.successful(BadRequest(Json.toJson(notificationRequest))) //TODO RESPONSE FOR 400
+            case payloadAsString if payloadAsString.contains("failWith-400") => Future.successful(BadRequest(Json.toJson(notificationRequest)))
             case _ => Future.successful(Ok(Json.toJson(notificationRequest)))
           }
         }
@@ -69,13 +74,16 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           functionCode match {
             case functionCode if functionCode.contains("01") =>
               println(Console.MAGENTA_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = 01" + Console.RESET)
-              countResponse(functionCode = "01")
+              countResponse("01")
             case functionCode if functionCode.contains("09") =>
               println(Console.CYAN_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = 09" + Console.RESET)
-              countResponse(functionCode = "09")
+              countResponse( "09")
             case functionCode if functionCode.contains("13") =>
               println(Console.GREEN_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = 13" + Console.RESET)
-              countResponse(functionCode = "13")
+              countResponse("13")
+            case _ =>
+              println(Console.GREEN_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = XX" + Console.RESET)
+              countResponse("XX")
             }
           }
 
@@ -94,7 +102,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
             }
           }
 
-          chekPayloadStatus()
+          checkPayloadStatus()
 
       case None =>
         val message = "Invalid Xml"
