@@ -77,7 +77,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
               countResponse("01")
             case functionCode if functionCode.contains("09") =>
               println(Console.CYAN_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = 09" + Console.RESET)
-              countResponse( "09")
+              countResponse("09")
             case functionCode if functionCode.contains("13") =>
               println(Console.GREEN_B + Console.BLACK + s"Time: ${LocalDateTime.now()} Function Code = 13" + Console.RESET)
               countResponse("13")
@@ -89,7 +89,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
           def countResponse(functionCode: String): scala.concurrent.Future[play.api.mvc.Result] = {
             val countNotificationsByCsId = Await.result(repo.countNotificationsByCsId(notificationRequest.csId), 5 seconds)
-            println(Console.GREEN_B + Console.BLACK + s"conversation id count= ${countNotificationsByCsId}" + Console.RESET)
+            println(Console.GREEN_B + Console.BLACK + s"conversation id count=[${countNotificationsByCsId}]" + Console.RESET)
             val soFar = notificationsReceived(functionCode)
             println(Console.GREEN_B + Console.BLACK + s"receiveNotification [$functionCode] [$soFar] times so far" + Console.RESET)
             val now = soFar + 1
