@@ -92,7 +92,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   def countAllNotifications(): Future[Int] = {
-    logger.debug("counting all clientNotifications")
     collection.countDocuments().toFuture().map(_.toInt)
   }
 

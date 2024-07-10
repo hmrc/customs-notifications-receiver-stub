@@ -176,7 +176,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
   def countAllNotifications: Action[AnyContent] = Action.async { _ =>
     repo.countAllNotifications().map { count =>
-      logger.debug("About to get count of all notifications")
+      logger.debug(s"All notifications count=[$count]")
       Ok(Json.parse(s"""{"count": "$count"}"""))
     }
   }
