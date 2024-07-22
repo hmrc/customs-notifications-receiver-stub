@@ -57,7 +57,7 @@ object CsId {
 }
 
 case class NotificationRequestRecord(notification: NotificationRequest,
-                                     timeReceived: LocalDateTime,
+                                     timeReceived: LocalDateTime, //TODO DCWL-2372 we don't need both fields for when notification is received.
                                     //This is never used in this service, but is required to keep the format correct
                                      _id: ObjectId)
 object NotificationRequestRecord{
@@ -73,7 +73,7 @@ case class NotificationRequest(csId: CsId,
                                conversationId: ConversationId,
                                authHeaderToken: String,
                                outboundCallHeaders: List[Header],
-                               ocalDateTime: LocalDateTime,
+                               localDateTime: LocalDateTime,
                                xmlPayload: String)
 
 object NotificationRequest{
@@ -82,7 +82,7 @@ object NotificationRequest{
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[List[Header]] and
-    (__ \ "received").format[LocalDateTime] and
+    (__ \ "received").format[LocalDateTime] and //TODO DCWL-2372 we don't need both fields for when notification is received.
     (__ \ "xmlPayload").format[String]
     )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
 }
