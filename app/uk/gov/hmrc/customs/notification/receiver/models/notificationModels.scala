@@ -73,6 +73,7 @@ case class NotificationRequest(csId: CsId,
                                conversationId: ConversationId,
                                authHeaderToken: String,
                                outboundCallHeaders: List[Header],
+                               ocalDateTime: LocalDateTime,
                                xmlPayload: String)
 
 object NotificationRequest{
@@ -81,6 +82,7 @@ object NotificationRequest{
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[List[Header]] and
+    (__ \ "received").format[LocalDateTime] and
     (__ \ "xmlPayload").format[String]
     )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
 }

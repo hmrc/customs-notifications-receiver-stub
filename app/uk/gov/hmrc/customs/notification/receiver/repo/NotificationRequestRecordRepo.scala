@@ -27,6 +27,7 @@ import uk.gov.hmrc.customs.notification.receiver.models.{ConversationId, CsId, N
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import java.time.LocalDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,6 +56,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
           .unique(false)))
   ) {
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
+    println(Console.GREEN_B + Console.BLACK + "ADDING TO THE DATABASE" + Console.RESET)
     //TODO
 //    logger.debug(s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
 //      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] saving clientNotification: [${notificationRequestRecord.notification}]")
