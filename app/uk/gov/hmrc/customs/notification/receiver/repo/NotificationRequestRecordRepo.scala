@@ -56,10 +56,13 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
           .unique(false)))
   ) {
   def insertNotificationRequestRecord(notificationRequestRecord: NotificationRequestRecord): Future[Unit] = {
-    println(Console.GREEN_B + Console.BLACK + "ADDING TO THE DATABASE" + Console.RESET)
-    //TODO
-//    logger.debug(s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
-//      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] saving clientNotification: [${notificationRequestRecord.notification}]")
+    logger.debug("(insertNotificationRequestRecord) Adding NRR to database...")
+
+    logger.debug(s"" +
+      s"[conversationId=[${notificationRequestRecord.notification.conversationId}]" +
+      s"[clientSubscriptionId=[${notificationRequestRecord.notification.csId}] "
+      // + s"saving clientNotification: [${notificationRequestRecord.notification.toString}]"
+      )
 
     val result: Future[InsertOneResult] = collection.insertOne(notificationRequestRecord).toFuture()
     result.map{ insertResult =>
@@ -74,12 +77,12 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   def findAllByCsId(csId: CsId): Future[Seq[NotificationRequest]] = {
-    logger.debug(s"fetching clientNotification(s) with csid: [${csId}]")
+    logger.debug(s"Fetching clientNotification(s) with csid: [${csId}]")
     findAllWithFilterAndSort(buildCsIdFilter(csId))
   }
 
   def findAllByConversationId(conversationId: ConversationId): Future[Seq[NotificationRequest]] = {
-    logger.debug(s"fetching clientNotification(s) with conversationId: [${conversationId}]")
+    logger.debug(s"Fetching clientNotification(s) with conversationId: [${conversationId}]")
     findAllWithFilterAndSort(buildConversationIdFilter(conversationId))
   }
 

@@ -43,6 +43,10 @@ object ConversationId {
   }
 }
 
+/**
+ * Client Subscription ID
+ * @param id
+ */
 case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
