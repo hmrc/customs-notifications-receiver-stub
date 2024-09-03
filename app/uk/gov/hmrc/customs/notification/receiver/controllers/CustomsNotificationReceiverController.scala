@@ -88,10 +88,10 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           }
 
           def countResponse(functionCode: String): scala.concurrent.Future[play.api.mvc.Result] = {
-            val countNotificationsByCsId = Await.result(repo.countNotificationsByCsId(notificationRequest.csId), 5 seconds)
-            logger.debug(s"Total notifications for client/csId #${ notificationRequest.csId } is [${countNotificationsByCsId}]")
+            val countNotificationsByConversationId = Await.result(repo.countNotificationsByConversationId(notificationRequest.conversationId), 5 seconds)
+            logger.debug(s"Total notifications for conversationId #${ notificationRequest.conversationId } is [${countNotificationsByConversationId}]")
             logger.debug(s"receiveNotification [$functionCode]")
-            if (countNotificationsByCsId > 10) {
+            if (countNotificationsByConversationId > 10) {
               logger.debug(s"RETURN SUCCESS")
               Future.successful(Ok(Json.toJson(notificationRequest)))
             } else {
