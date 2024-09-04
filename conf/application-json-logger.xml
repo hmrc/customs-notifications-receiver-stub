@@ -5,7 +5,7 @@
         <encoder class="uk.gov.hmrc.play.logging.JsonEncoder"/>
     </appender>
 
-    <logger name="customs-notifications-receiver-stub" level="${logger.customs-notifications-receiver-stub:-${logger.application:-DEBUG}}"/>
+    <logger name="customs-notifications-receiver-stub" level="DEBUG"/>
 
     <logger name="org.asynchttpclient.netty.handler" level="${logger.asynchttpclient:-WARN}"/>
 
