@@ -31,7 +31,9 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import javax.inject.Singleton
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 
@@ -43,14 +45,62 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
+    //TODO AS THIS IS MOCKING THE CLIENT WE WOULD LIKE THIS TO RETURN 500 SO MANY TIMES AND THEN RETURN OK
+    logger.debug(s"extractedHeadersRequest.request == ${extractedHeadersRequest.request}")
+
     extractedHeadersRequest.body.asXml match {
       case Some(xmlPayload) =>
         val seqOfHeader = extractedHeadersRequest.headers.toSimpleMap.map(t => Header(t._1, t._2)).toSeq
         val payloadAsString = xmlPayload.toString
-        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList, payloadAsString)
-        logger.debug(s"Received Notification for :[${notificationRequest.csId}]\nheaders=\n[$seqOfHeader]\npayload=\n[$payloadAsString]")
+        val notificationRequest = NotificationRequest(extractedHeadersRequest.csid, extractedHeadersRequest.conversationId, extractedHeadersRequest.authHeader, seqOfHeader.toList,LocalDateTime.now(ZoneOffset.UTC), payloadAsString)
+        logger.debug(s"Received Notification for: [${notificationRequest.csId}], headers=[$seqOfHeader]")
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest, LocalDateTime.now(ZoneOffset.UTC), new ObjectId()))
-        Future.successful(Ok(Json.toJson(notificationRequest)))
+
+        val functionCode: String = Try {
+          val payload = notificationRequest.xmlPayload
+          val functionCodeIndex = payload.indexOf("p:FunctionCode")
+          payload.subSequence(functionCodeIndex, functionCodeIndex + 20).toString
+        }.getOrElse("FailedToGetFunctionCode")
+
+        def checkPayloadStatus():scala.concurrent.Future[play.api.mvc.Result] = {
+          payloadAsString match {
+            case payloadAsString if payloadAsString.contains("failWith-500") => countTimesReturned()
+            case payloadAsString if payloadAsString.contains("failWith-400") => Future.successful(BadRequest(Json.toJson(notificationRequest)))
+            case _ => Future.successful(Ok(Json.toJson(notificationRequest)))
+          }
+        }
+
+        def countTimesReturned(): scala.concurrent.Future[play.api.mvc.Result] = {
+          functionCode match {
+            case functionCode if functionCode.contains("01") =>
+              logger.debug(s"Time: ${LocalDateTime.now()} Function Code = 01")
+              countResponse("01")
+            case functionCode if functionCode.contains("09") =>
+              logger.debug(s"Time: ${LocalDateTime.now()} Function Code = 09")
+              countResponse("09")
+            case functionCode if functionCode.contains("13") =>
+              logger.debug(s"Time: ${LocalDateTime.now()} Function Code = 13")
+              countResponse("13")
+            case _ =>
+              logger.debug(s"Time: ${LocalDateTime.now()} Function Code = XX")
+              countResponse("XX")
+            }
+          }
+
+          def countResponse(functionCode: String): scala.concurrent.Future[play.api.mvc.Result] = {
+            val countNotificationsByConversationId = Await.result(repo.countNotificationsByConversationId(notificationRequest.conversationId), 5 seconds)
+            logger.debug(s"Total notifications for conversationId #${ notificationRequest.conversationId } is [${countNotificationsByConversationId}]")
+            logger.debug(s"receiveNotification [$functionCode]")
+            if (countNotificationsByConversationId > 10) {
+              logger.debug(s"RETURN SUCCESS")
+              Future.successful(Ok(Json.toJson(notificationRequest)))
+            } else {
+             Future.successful(InternalServerError(Json.toJson(notificationRequest)))
+            }
+          }
+
+          checkPayloadStatus()
+
       case None =>
         val message = "Invalid Xml"
         logger.error(message)
@@ -123,7 +173,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
   def countAllNotifications: Action[AnyContent] = Action.async { _ =>
     repo.countAllNotifications().map { count =>
-      logger.debug("About to get count of all notifications")
+      logger.debug(s"All notifications count=[$count]")
       Ok(Json.parse(s"""{"count": "$count"}"""))
     }
   }

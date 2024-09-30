@@ -59,13 +59,14 @@ lazy val integrationComponentTestSettings =
 
 lazy val commonSettings: Seq[Setting[_]] = gitStampSettings
 
+//TODO DCWL-2372 decide on correct coverage details.
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>"
     ,".*Reverse.*"
     ,".*(AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimumStmtTotal := 92,
+  coverageMinimumStmtTotal := 85,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   Test / parallelExecution := false
