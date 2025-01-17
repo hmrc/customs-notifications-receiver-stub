@@ -121,6 +121,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   private def sortNotificationRequestRecordsByDateAscending(notificationRequestRecords: Seq[NotificationRequestRecord]): Seq[NotificationRequestRecord] = {
-    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.timeReceived.isBefore(nextRecord.timeReceived))
+    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.notification.localDateTime.isBefore(nextRecord.notification.localDateTime))
   }
 }
