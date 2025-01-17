@@ -66,7 +66,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           payloadAsString match {
             case payloadAsString if payloadAsString.contains("failWith-500") => countTimesReturned()
             case payloadAsString if payloadAsString.contains("failWith-400") => Future.successful(BadRequest(Json.toJson(notificationRequest)))
-            case _ => Future.successful(Ok(Json.toJson(notificationRequest)))
+            case _ => Future.successful(Ok(Json.toJson("")))
           }
         }
 
