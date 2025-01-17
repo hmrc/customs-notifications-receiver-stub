@@ -1,8 +1,10 @@
-# `customs-notifications-receiver-stub`
+# Customs Notifications Receiver Stub
+
+Simulates an external user receiving pushed notifications that relate to customs declarations.
 
 This service provides: 
 
-- An `POST` endpoint for receiving notification. These are stored in the order they were sent, keyed by 
+- An `POST` endpoint for receiving notifications. These are stored in the order they were sent, keyed by 
   Client Subscription ID (`CsId`) which is a UID 
 - An `GET` endpoint for retrieving all notifications for a `CsId`
 - An `DELETE` endpoint for clearing all stored notifications.

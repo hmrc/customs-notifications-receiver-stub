@@ -2,7 +2,7 @@ import play.sbt.PlayImport.PlayKeys.playDefaultPort
 import sbt.Keys._
 import sbt.Tests.{Group, SubProcess}
 import sbt._
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption, targetJvm}
+import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 import uk.gov.hmrc.gitstamp.GitStampPlugin._
 
 import scala.language.postfixOps
@@ -29,7 +29,6 @@ lazy val microservice = (project in file("."))
   .configs(testConfig: _*)
   .settings(
     scalaVersion := "2.13.13",
-    targetJvm := "jvm-11",
     commonSettings,
     unitTestSettings,
     integrationComponentTestSettings,
