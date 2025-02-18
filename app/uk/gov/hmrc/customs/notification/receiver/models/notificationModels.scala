@@ -64,8 +64,8 @@ object CsId {
 
 case class NotificationRequestRecord(notification: NotificationRequest, _id: ObjectId, hash: String) {
   override def toString: String = {
-      s"[_id=${_id}]" +
-    s"[notification=${}]"
+      s"[_id=${ _id }]" +
+    s"[notification=${ notification }]"
   }
 }
 
@@ -89,11 +89,11 @@ case class NotificationRequest(csId: CsId,
                                localDateTime: LocalDateTime,
                                xmlPayload: String) {
   override def toString: String = {
-    s"[csId=${}]" +
-      s"[conversationId=${}]" +
-      s"[authHeaderToken=${}]" +
-      s"[outboundCallHeaders=${}]" +
-      s"[localDateTime=${}]"
+    s"[csId=${ csId }]" +
+      s"[conversationId=${ conversationId }]" +
+      s"[authHeaderToken=${ authHeaderToken }]" +
+      s"[outboundCallHeaders=${outboundCallHeaders}]" +
+      s"[localDateTime=${localDateTime}]"
   }
 }
 

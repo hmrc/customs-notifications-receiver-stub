@@ -90,6 +90,11 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
     countNotificationsByFilter(buildConversationIdFilter(conversationId))
   }
 
+  def countByHash(hash: String): Future[Int] = {
+    logger.debug(s"fetching clientNotification(s) with hash value: [${hash}]")
+    countNotificationsByFilter(buildHashFilter(hash))
+  }
+
   def countAllNotifications(): Future[Int] = {
     logger.debug("counting all clientNotifications")
     collection.countDocuments().toFuture().map(_.toInt)
@@ -106,6 +111,10 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
 
   private def buildConversationIdFilter(conversationId: ConversationId): conversions.Bson = {
     equal("notification.conversationId", conversationId)
+  }
+
+  private def buildHashFilter(hash: String): conversions.Bson = {
+    equal("hash", hash)
   }
 
   private def findAllWithFilterAndSort(filter: Bson): Future[Seq[NotificationRequest]] = {

@@ -23,6 +23,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.customs.common.controllers.ErrorResponse
 import uk.gov.hmrc.customs.common.controllers.ErrorResponse._
 import uk.gov.hmrc.customs.common.logging.CdsLogger
+import uk.gov.hmrc.customs.notification.receiver.Utils
 import uk.gov.hmrc.customs.notification.receiver.models.NotificationRequest._
 import uk.gov.hmrc.customs.notification.receiver.models._
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
@@ -77,8 +78,14 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
 
         payloadAsString match {
           case payloadAsString if payloadAsString.contains("failWith-500") => handle5xx(10, notificationRequest)
-          case payloadAsString if payloadAsString.contains("failWith-400") => Future.successful(BadRequest(Json.toJson("""{"message":"custom 4xx handler response from trader"}""")))
-          case _ => Future.successful(Ok(Json.toJson("""{"message":"well done, this is a 200 response from the trader's system"}""")))
+          case payloadAsString if payloadAsString.contains("failWith-400") => {
+            logger.warn(s"*Bad Request, returning 400 response*")
+            Future.successful(BadRequest(Json.toJson("""{"message":"custom 4xx handler response from trader"}""")))
+          }
+          case _ => {
+            logger.info(s"*Success, returning 200 response*")
+            Future.successful(Ok(Json.toJson(s"""{"message":"well done, this is a 200 response from the trader's system regarding ${ notificationRequest.conversationId }"}""")))
+          }
         }
     }
   }
@@ -86,28 +93,27 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
   /**
    * timesUntilSuccess: e.g. 1 = return a 200 if there has already been 1 5xx response for this notification */
   def handle5xx(timesUntilSuccess: Int, notificationRequest: NotificationRequest): Future[Result] = {
-    val countNotificationsByConversationId = Await.result(repo.countNotificationsByConversationId(notificationRequest.conversationId), 5 seconds)
+    val countNotificationsByContents = Await.result(repo.countByHash(Utils.hashNotificationContents(notificationRequest.xmlPayload)), 5 seconds)
 
     // TODO: need to get a hash of the payload so we know its the same notification, and not just the conversationId
 
-    logger.debug(s"Total notifications for conversationId #${ notificationRequest.conversationId } is [${countNotificationsByConversationId}]")
+    logger.debug(s"Total notifications for conversationId #${ notificationRequest.conversationId } is [${countNotificationsByContents}]")
 
-    if (countNotificationsByConversationId > 10) { // TODO: get number from request eventually
-      logger.debug(s"*Client has successfully received notification!*")
+    if (countNotificationsByContents > 10) { // TODO: get number from request eventually
+      logger.info(s"*Client has successfully received notification! Returning OK response*")
       Future.successful(Ok(Json.toJson("")))
     } else {
+      logger.warn(s"*Returning 500 response*")
       Future.successful(InternalServerError(Json.toJson("")))
     }
   }
 
   def retrieveNotificationByCsId(csid: String): Action[AnyContent] = Action.async { request =>
-    logger.debug(s"Trying to get log of notifications for CsId:[$csid], headers=[${request.headers.toSimpleMap}]")
-
     Try(UUID.fromString(csid)) match {
       case Success(uuid) =>
         val eventuallyNotifications  = repo.findAllByCsId(CsId(uuid))
         eventuallyNotifications.map { seqNotifications =>
-          logger.debug(s"Found Notifications for csId=[$csid]")
+          logger.debug(s"Found ${ seqNotifications.size } Notifications for csId=[$csid]")
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
@@ -159,6 +165,18 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         }
       case Failure(e) =>
         logger.error(s"Invalid csid UUID [$conversationId]")
+        Future.successful(errorBadRequest(e.getMessage).JsonResult)
+    }
+  }
+
+  def countNotificationsByContents(hash: String): Action[AnyContent] = Action.async { _ =>
+    Try(hash) match {
+      case Success(hash) =>
+        repo.countByHash(hash).map { count =>
+          Ok(Json.parse(s"""{"count": "$count"}"""))
+        }
+      case Failure(e) =>
+        logger.error(s"Invalid hash")
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
