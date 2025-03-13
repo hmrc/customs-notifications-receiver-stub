@@ -34,7 +34,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, Future => logger}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -51,7 +51,6 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
    * or Future.successful(InternalServerError) for 400 (e.g. we sent incorrect XML to them),
    * or Future.successful(BadRequest) for a 500 (server error) */
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
-    //TODO AS THIS IS MOCKING THE CLIENT WE WOULD LIKE THIS TO RETURN 500 SO MANY TIMES AND THEN RETURN OK
     logger.debug(s"extractedHeadersRequest.request == ${extractedHeadersRequest.request}")
 
     extractedHeadersRequest.body.asXml match {
@@ -72,34 +71,39 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
         // save a record of this notification being received, so can test against this
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest))
 
-        val functionCode: String = getFunctionCode(notificationRequest.xmlPayload)
-
-        // check intention, if we need to return 200, fail with 400, or fail with 500 after x times
-
         payloadAsString match {
-          case payloadAsString if payloadAsString.contains("failWith-500") => handle5xx(10, notificationRequest)
-          case payloadAsString if payloadAsString.contains("failWith-400") => {
-            logger.warn(s"*Bad Request, returning 400 response*")
+          case s if s.contains("failWith-500") =>
+            val numberOf5xxToReturn = s
+              .split("_retry")
+              .lift(1)
+              .flatMap(_.takeWhile(_.isDigit) match {
+                case ""  => None
+                case num => Some(num.toInt)
+              })
+
+            handle5xx(numberOf5xxToReturn.getOrElse(1), notificationRequest)
+
+          case s if s.contains("failWith-400") =>
+            logger.warn("*Bad Request, returning 400 response*")
             Future.successful(BadRequest(Json.toJson("""{"message":"custom 4xx handler response from trader"}""")))
-          }
-          case _ => {
-            logger.info(s"*Success, returning 200 response*")
-            Future.successful(Ok(Json.toJson(s"""{"message":"well done, this is a 200 response from the trader's system regarding ${ notificationRequest.conversationId }"}""")))
-          }
+
+          case _ =>
+            logger.info("*Success, returning 200 response*")
+            Future.successful(Ok(Json.toJson(
+              s"""{"message":"well done, this is a 200 response from the trader's system regarding ${notificationRequest.conversationId}"}"""
+            )))
         }
     }
   }
 
   /**
-   * timesUntilSuccess: e.g. 1 = return a 200 if there has already been 1 5xx response for this notification */
+   * timesUntilSuccess: e.g. 1 = finally return a 200 if there has already been 1 (timesUntilSuccess) 5xx response for this notification */
   def handle5xx(timesUntilSuccess: Int, notificationRequest: NotificationRequest): Future[Result] = {
     val countNotificationsByContents = Await.result(repo.countByHash(Utils.hashNotificationContents(notificationRequest.xmlPayload)), 5 seconds)
 
-    // TODO: need to get a hash of the payload so we know its the same notification, and not just the conversationId
-
     logger.debug(s"Total notifications for conversationId #${ notificationRequest.conversationId } is [${countNotificationsByContents}]")
 
-    if (countNotificationsByContents > 10) { // TODO: get number from request eventually
+    if (countNotificationsByContents > timesUntilSuccess) {
       logger.info(s"*Client has successfully received notification! Returning OK response*")
       Future.successful(Ok(Json.toJson("")))
     } else {
