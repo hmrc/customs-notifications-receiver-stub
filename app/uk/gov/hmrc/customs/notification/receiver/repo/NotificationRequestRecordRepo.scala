@@ -41,6 +41,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
       Codecs.playFormatCodec(CsId.format),
       Codecs.playFormatCodec(ConversationId.format)
     ),
+    // TODO: these two indexes on "timeReceived"? There is no timeReceived
     indexes = Seq(
       IndexModel(
         compoundIndex(ascending("notification.csid"), descending("timeReceived")),

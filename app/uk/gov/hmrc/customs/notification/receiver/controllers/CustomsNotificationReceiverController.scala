@@ -51,6 +51,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
    * or Future.successful(InternalServerError) for 400 (e.g. we sent incorrect XML to them),
    * or Future.successful(BadRequest) for a 500 (server error) */
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
+    Thread.sleep(15000) // TODO: remove before commit, this is just to slow things down for testing
     logger.debug(s"extractedHeadersRequest.request == ${extractedHeadersRequest.request}")
 
     extractedHeadersRequest.body.asXml match {
@@ -68,7 +69,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           LocalDateTime.now(ZoneOffset.UTC),
           payloadAsString)
 
-        // save a record of this notification being received, so can test against this
+        // save a record of this notification being attempted to be processed, so can test against this
         repo.insertNotificationRequestRecord(NotificationRequestRecord(notificationRequest))
 
         payloadAsString match {

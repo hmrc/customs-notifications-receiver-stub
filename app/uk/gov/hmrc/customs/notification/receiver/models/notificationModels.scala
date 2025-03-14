@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.customs.notification.receiver.models
 
-import uk.gov.hmrc.customs.notification.receiver.Utils
 import org.bson.types.ObjectId
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -103,7 +102,7 @@ object NotificationRequest{
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[List[Header]] and
-    (__ \ "received").format[LocalDateTime] and //TODO DCWL-2372 we don't need both fields for when notification is received.
+    (__ \ "localDateTime").format[LocalDateTime] and
     (__ \ "xmlPayload").format[String]
     )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
 }
