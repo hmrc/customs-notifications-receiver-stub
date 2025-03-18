@@ -55,7 +55,7 @@ object TestData {
     conversationId = conversationId1,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers1,
-    localDateTime = new LocalDateTime(),
+    localDateTime = LocalDateTime.now(),
     xmlPayload = xmlPayload)
 
   val notificationRequest2: NotificationRequest = NotificationRequest(
@@ -63,7 +63,7 @@ object TestData {
     conversationId = conversationId2,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers2,
-    localDateTime = new LocalDateTime(),
+    localDateTime = LocalDateTime.now(),
     xmlPayload = xmlPayload)
 
   val notificationRequest3: NotificationRequest = NotificationRequest(
@@ -71,7 +71,7 @@ object TestData {
     conversationId = conversationId3,
     authHeaderToken = authHeaderToken,
     outboundCallHeaders = headers3,
-    localDateTime = new LocalDateTime(),
+    localDateTime = LocalDateTime.now(),
     xmlPayload = xmlPayload)
 
   val notificationRequestRecord1: NotificationRequestRecord = NotificationRequestRecord(notificationRequest1)
