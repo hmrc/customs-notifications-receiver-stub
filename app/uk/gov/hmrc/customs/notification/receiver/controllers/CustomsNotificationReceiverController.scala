@@ -17,7 +17,6 @@
 package uk.gov.hmrc.customs.notification.receiver.controllers
 
 import com.google.inject.Inject
-import org.bson.types.ObjectId
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.customs.common.controllers.ErrorResponse
@@ -29,12 +28,11 @@ import uk.gov.hmrc.customs.notification.receiver.models._
 import uk.gov.hmrc.customs.notification.receiver.repo.NotificationRequestRecordRepo
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.security.MessageDigest
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future, Future => logger}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -51,7 +49,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
    * or Future.successful(InternalServerError) for 400 (e.g. we sent incorrect XML to them),
    * or Future.successful(BadRequest) for a 500 (server error) */
   def post(): Action[AnyContent] = Action andThen headerValidationAction async { implicit extractedHeadersRequest =>
-    Thread.sleep(15000) // TODO: remove before commit, this is just to slow things down for testing
+    // Thread.sleep(15000) // TODO: remove before commit, this is just to slow things down for testing
     logger.debug(s"extractedHeadersRequest.request == ${extractedHeadersRequest.request}")
 
     extractedHeadersRequest.body.asXml match {
