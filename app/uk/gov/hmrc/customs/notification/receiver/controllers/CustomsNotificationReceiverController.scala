@@ -141,7 +141,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           }
         }
       case Failure(e) =>
-        logger.error(s"Bad request [$conversationId]") // TODO: shouldn't get stack trace for a bad request
+        logger.error(s"Bad request [$conversationId]")
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
