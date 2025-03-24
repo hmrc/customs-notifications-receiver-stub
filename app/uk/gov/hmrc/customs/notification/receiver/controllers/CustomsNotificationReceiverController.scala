@@ -87,7 +87,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
             Future.successful(BadRequest(Json.toJson("""{"message":"custom 4xx handler response from trader"}""")))
 
           case _ =>
-            logger.info("*Success, returning 200 response*")
+            logger.info(s"*Success, returning 200 response for notificationRequest.conversationId: [${notificationRequest.conversationId}]*")
             Future.successful(Ok(Json.toJson(
               s"""{"message":"well done, this is a 200 response from the trader's system regarding ${notificationRequest.conversationId}"}"""
             )))
@@ -120,7 +120,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           Ok(Json.toJson(seqNotifications))
         }
       case Failure(e) =>
-        logger.error("Bad request", e)
+        logger.error(s"Bad request for [$csid]", e)
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
@@ -141,7 +141,7 @@ class CustomsNotificationReceiverController @Inject()(logger: CdsLogger,
           }
         }
       case Failure(e) =>
-        logger.error("Bad request", e) // TODO: shouldn't get stack trace for a bad request
+        logger.error(s"Bad request [$conversationId]") // TODO: shouldn't get stack trace for a bad request
         Future.successful(errorBadRequest(e.getMessage).JsonResult)
     }
   }
