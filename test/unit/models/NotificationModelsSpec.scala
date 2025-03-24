@@ -46,12 +46,12 @@ class NotificationModelsSpec extends UnitSpec {
 
   "For NotificationRequest" should {
     "when reading" in {
-      val notificationRequestJson = Json.parse("""{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"xmlPayload":"testXmlPayload"}""")
+      val notificationRequestJson = Json.parse("""{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"localDateTime":"2025-03-18T15:45:41.255593","xmlPayload":"testXmlPayload"}""")
       notificationRequestJson.as[NotificationRequest] shouldBe notificationRequest1
     }
 
     "when writing" in {
-      toJson(notificationRequest1) shouldBe Json.parse("""{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"xmlPayload":"testXmlPayload"}""")
+      toJson(notificationRequest1) shouldBe Json.parse("""{"csid":"ffff01f9-ec3b-4ede-b263-61b626dde232","conversationId":"eaca01f9-ec3b-4ede-b263-61b626dde232","authHeaderToken":"testAuthHeaderToken","outboundCallHeaders":[{"name":"testHeader1","value":"value1"},{"name":"testHeader2","value":"value2"}],"localDateTime":"2025-03-18T15:45:41.255593","xmlPayload":"testXmlPayload"}""")
     }
   }
 
