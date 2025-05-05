@@ -19,6 +19,7 @@ package uk.gov.hmrc.customs.notification.receiver.models
 import org.bson.types.ObjectId
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.customs.notification.receiver.Utils.hashNotificationContents
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 
 import java.time.LocalDateTime
@@ -43,6 +44,10 @@ object ConversationId {
   }
 }
 
+/**
+ * Client Subscription ID
+ * @param id
+ */
 case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
@@ -56,16 +61,23 @@ object CsId {
   }
 }
 
-case class NotificationRequestRecord(notification: NotificationRequest,
-                                     timeReceived: LocalDateTime,
-                                    //This is never used in this service, but is required to keep the format correct
-                                     _id: ObjectId)
-object NotificationRequestRecord{
+case class NotificationRequestRecord(notification: NotificationRequest, _id: ObjectId, hash: String) {
+  override def toString: String = {
+      s"[_id=${ _id }]" +
+    s"[notification=${ notification }]"
+  }
+}
+
+object NotificationRequestRecord {
+  def apply(notificationRequest: NotificationRequest): NotificationRequestRecord = {
+    new NotificationRequestRecord(notificationRequest, _id = new ObjectId(), hash = hashNotificationContents(notificationRequest.xmlPayload))
+  }
+
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val format: Format[NotificationRequestRecord] = (
       (__ \ "notification").format[NotificationRequest] and
-      (__ \ "timeReceived").format[LocalDateTime] and
-      (__ \ "_id").format[ObjectId]
+        (__ \ "_id").format[ObjectId] and
+        (__ \ "hash").format[String]
   )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
 
@@ -73,7 +85,16 @@ case class NotificationRequest(csId: CsId,
                                conversationId: ConversationId,
                                authHeaderToken: String,
                                outboundCallHeaders: List[Header],
-                               xmlPayload: String)
+                               localDateTime: LocalDateTime,
+                               xmlPayload: String) {
+  override def toString: String = {
+    s"[csId=${ csId }]" +
+      s"[conversationId=${ conversationId }]" +
+      s"[authHeaderToken=${ authHeaderToken }]" +
+      s"[outboundCallHeaders=${outboundCallHeaders}]" +
+      s"[localDateTime=${localDateTime}]"
+  }
+}
 
 object NotificationRequest{
   implicit val format: Format[NotificationRequest] = (
@@ -81,6 +102,7 @@ object NotificationRequest{
     (__ \ "conversationId").format[ConversationId] and
     (__ \ "authHeaderToken").format[String] and
     (__ \ "outboundCallHeaders").format[List[Header]] and
+    (__ \ "localDateTime").format[LocalDateTime] and
     (__ \ "xmlPayload").format[String]
     )(NotificationRequest.apply, unlift(NotificationRequest.unapply))
 }

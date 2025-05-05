@@ -41,6 +41,7 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
       Codecs.playFormatCodec(CsId.format),
       Codecs.playFormatCodec(ConversationId.format)
     ),
+    // TODO: these two indexes on "timeReceived"? There is no timeReceived
     indexes = Seq(
       IndexModel(
         compoundIndex(ascending("notification.csid"), descending("timeReceived")),
@@ -90,6 +91,11 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
     countNotificationsByFilter(buildConversationIdFilter(conversationId))
   }
 
+  def countByHash(hash: String): Future[Int] = {
+    logger.debug(s"fetching clientNotification(s) with hash value: [${hash}]")
+    countNotificationsByFilter(buildHashFilter(hash))
+  }
+
   def countAllNotifications(): Future[Int] = {
     logger.debug("counting all clientNotifications")
     collection.countDocuments().toFuture().map(_.toInt)
@@ -108,6 +114,10 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
     equal("notification.conversationId", conversationId)
   }
 
+  private def buildHashFilter(hash: String): conversions.Bson = {
+    equal("hash", hash)
+  }
+
   private def findAllWithFilterAndSort(filter: Bson): Future[Seq[NotificationRequest]] = {
     for {
       notificationRequestRecords <- collection.find(filter).toFuture()
@@ -121,6 +131,6 @@ class NotificationRequestRecordRepo @Inject()(mongoComponent: MongoComponent, lo
   }
 
   private def sortNotificationRequestRecordsByDateAscending(notificationRequestRecords: Seq[NotificationRequestRecord]): Seq[NotificationRequestRecord] = {
-    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.timeReceived.isBefore(nextRecord.timeReceived))
+    notificationRequestRecords.sortWith((thisRecord, nextRecord) => thisRecord.notification.localDateTime.isBefore(nextRecord.notification.localDateTime))
   }
 }
