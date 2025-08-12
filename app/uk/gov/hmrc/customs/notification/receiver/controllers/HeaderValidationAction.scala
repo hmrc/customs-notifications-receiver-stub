@@ -37,27 +37,29 @@ class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponen
   private val uuidRegex = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$".r
   private val xmlRegex = s"^${MimeTypes.XML}.*".r
 
-  override def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] = {
-    Future.successful{
+  override def refine[A](r: Request[A]): Future[Either[Result, ExtractedHeadersRequest[A]]] =
+    Future.successful {
       for {
         _ <- validateAndExtract(r, HeaderNames.CONTENT_TYPE, xmlRegex, ErrorContentTypeHeaderInvalid)
         conversationId <- validateAndExtract(r, CustomHeaderNames.X_CONVERSATION_ID_HEADER_NAME, uuidRegex, ErrorGenericBadRequest)
         authHeader <- validateAndExtract(r, HeaderNames.AUTHORIZATION, uuidRegex, ErrorGenericBadRequest)
-      } yield ExtractedHeadersRequest(CsId(UUID.fromString(authHeader)), ConversationId(UUID.fromString(conversationId)), authHeader,  r)
+      } yield ExtractedHeadersRequest(CsId(UUID.fromString(authHeader)), ConversationId(UUID.fromString(conversationId)), authHeader, r)
     }
-  }
 
   private def validateAndExtract[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
-    request.headers.get(headerName) match
+    request.headers.get(headerName) match {
       case None =>
         logger.error(s"Unable to retrieve header:$headerName from the request")
         Left(errorResponse.XmlResult)
+
       case Some(headerValue) =>
-        if regex.matches(headerValue) then
+        if (regex.matches(headerValue)) {
           logger.debug(s"header:$headerName retrieved and validated, value was: $headerValue")
           Right(headerValue)
-        else
+        } else {
           logger.error(s"header:$headerName was invalid value:$headerValue")
           Left(errorResponse.XmlResult)
+        }
+    }
   }
 }
