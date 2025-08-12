@@ -2,9 +2,9 @@ import sbt._
 
 object AppDependencies {
 
-  private val hmrcMongoVersion = "2.6.0"
+  private val hmrcMongoVersion = "2.7.0"
   private val playSuffix       = "-play-30"
-  private val bootstrapVersion = "9.11.0"
+  private val bootstrapVersion = "10.1.0"
 
   val compile = Seq(
   "uk.gov.hmrc"         %% s"bootstrap-backend$playSuffix" % bootstrapVersion,
