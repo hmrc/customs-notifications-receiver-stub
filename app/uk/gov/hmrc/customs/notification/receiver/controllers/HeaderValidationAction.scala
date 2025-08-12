@@ -48,20 +48,16 @@ class HeaderValidationAction @Inject()(logger: CdsLogger, cc: ControllerComponen
   }
 
   private def validateAndExtract[A](request: Request[A], headerName: String, regex: Regex, errorResponse: ErrorResponse): Either[Result, String] = {
-    val mayBeHeaderValue = request.headers.get(headerName)
-    mayBeHeaderValue.fold[Either[Result, String]]{
-      logger.error(s"Unable to retrieve header:$headerName from the request")
-      Left(errorResponse.XmlResult)
-    }{ headerValue: String =>
-      val matcher = regex.pattern.matcher(headerValue)
-      if (matcher.find()) {
-        logger.debug(s"header:$headerName retrieved and validated, value was: $headerValue")
-        Right(headerValue)
-      } else {
-        logger.error(s"header:$headerName was invalid value:$headerValue")
+    request.headers.get(headerName) match
+      case None =>
+        logger.error(s"Unable to retrieve header:$headerName from the request")
         Left(errorResponse.XmlResult)
-      }
-    }
+      case Some(headerValue) =>
+        if regex.matches(headerValue) then
+          logger.debug(s"header:$headerName retrieved and validated, value was: $headerValue")
+          Right(headerValue)
+        else
+          logger.error(s"header:$headerName was invalid value:$headerValue")
+          Left(errorResponse.XmlResult)
   }
-
 }
