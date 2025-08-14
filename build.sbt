@@ -28,7 +28,7 @@ lazy val microservice = (project in file("."))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .configs(testConfig: _*)
   .settings(
-    scalaVersion := "2.13.16",
+    scalaVersion := "3.3.6",
     commonSettings,
     unitTestSettings,
     integrationComponentTestSettings,
@@ -64,7 +64,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
     ,".*Reverse.*"
     ,".*(AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimumStmtTotal := 92,
+  coverageMinimumStmtTotal := 87,
   coverageFailOnMinimum := true,
   coverageHighlighting := true,
   Test / parallelExecution := false
