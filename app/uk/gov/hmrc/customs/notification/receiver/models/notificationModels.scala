@@ -17,8 +17,8 @@
 package uk.gov.hmrc.customs.notification.receiver.models
 
 import org.bson.types.ObjectId
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 
 import java.time.LocalDateTime
@@ -26,13 +26,14 @@ import java.util.UUID
 
 case class Header(name: String, value: String)
 
-object Header{
+object Header {
   implicit val format: Format[Header] = Json.format[Header]
 }
 
 case class ConversationId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
+
 object ConversationId {
   implicit val format: Format[ConversationId] = new Format[ConversationId] {
     def writes(conversationId: ConversationId): JsValue = JsString(conversationId.id.toString)
@@ -46,6 +47,7 @@ object ConversationId {
 case class CsId(id: UUID) extends AnyVal {
   override def toString: String = id.toString
 }
+
 object CsId {
   implicit val format: Format[CsId] = new Format[CsId] {
     def writes(csid: CsId): JsString = JsString(csid.id.toString)
@@ -58,14 +60,18 @@ object CsId {
 
 case class NotificationRequestRecord(notification: NotificationRequest,
                                      timeReceived: LocalDateTime,
-                                    //This is never used in this service, but is required to keep the format correct
+                                     //This is never used in this service, but is required to keep the format correct
                                      _id: ObjectId)
-object NotificationRequestRecord{
+
+object NotificationRequestRecord {
+  def unapply(r: NotificationRequestRecord): Option[(NotificationRequest, LocalDateTime, ObjectId)] =
+    Option((r.notification, r.timeReceived, r._id))
+
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val format: Format[NotificationRequestRecord] = (
-      (__ \ "notification").format[NotificationRequest] and
-      (__ \ "timeReceived").format[LocalDateTime] and
-      (__ \ "_id").format[ObjectId]
+    (__ \ "notification").format[NotificationRequest] and
+    (__ \ "timeReceived").format[LocalDateTime] and
+    (__ \ "_id").format[ObjectId]
   )(NotificationRequestRecord.apply, unlift(NotificationRequestRecord.unapply))
 }
 
@@ -75,7 +81,10 @@ case class NotificationRequest(csId: CsId,
                                outboundCallHeaders: List[Header],
                                xmlPayload: String)
 
-object NotificationRequest{
+object NotificationRequest {
+  def unapply(n: NotificationRequest): Option[(CsId, ConversationId, String, List[Header], String)] =
+    Option((n.csId, n.conversationId, n.authHeaderToken, n.outboundCallHeaders, n.xmlPayload))
+
   implicit val format: Format[NotificationRequest] = (
     (__ \ "csid").format[CsId] and
     (__ \ "conversationId").format[ConversationId] and

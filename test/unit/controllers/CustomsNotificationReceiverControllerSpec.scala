@@ -33,7 +33,7 @@ import util.TestData._
 import util.UnitSpec
 
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -75,7 +75,7 @@ class CustomsNotificationReceiverControllerSpec extends UnitSpec with BeforeAndA
       val conversationId = "eaca01f9-ec3b-4ede-b263-61b626dde292"
       val notificationReqSeq: Seq[NotificationRequest] = Seq()
 
-      when(mockNotificationRequestRecordRepo.findAllByConversationId(ConversationId(UUID.fromString(conversationId)))).thenReturn(notificationReqSeq)
+      when(mockNotificationRequestRecordRepo.findAllByConversationId(ConversationId(UUID.fromString(conversationId)))).thenReturn(Future.successful(notificationReqSeq))
       private val result = testController.retrieveNotificationByConversationId(conversationId).apply(fakeRequestWithHeaders)
       Helpers.status(result) shouldBe Status.NOT_FOUND
       string2xml(Helpers.contentAsString(result)) shouldBe <errorResponse><code>NOT_FOUND</code><message>Resource was not found</message></errorResponse>
